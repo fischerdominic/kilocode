@@ -1536,6 +1536,13 @@ export const dict = {
 
   "settings.display.username.title": "使用者名稱",
   "settings.display.username.description": "對話中顯示的自訂使用者名稱",
+  "settings.shell.title": "Shell",
+  "settings.shell.description": "用於執行命令的終端 shell。自動偵測在 Windows 上使用 Git Bash，macOS 上使用 zsh/bash，Linux 上使用 $SHELL。",
+  "settings.shell.autoDetect": "自動偵測",
+  "settings.shell.bash": "Bash",
+  "settings.shell.zsh": "Zsh",
+  "settings.shell.pwsh": "PowerShell Core (pwsh)",
+  "settings.shell.powershell": "Windows PowerShell",
   "settings.display.fontSize.title": "字體大小",
   "settings.display.fontSize.description": "獨立於 VS Code 調整 Kilo webview UI 的字體大小。",
   "settings.display.reasoningAutoCollapse.title": "自動收合推理",

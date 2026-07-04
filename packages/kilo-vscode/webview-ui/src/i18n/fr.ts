@@ -1678,6 +1678,13 @@ export const dict = {
 
   "settings.display.username.title": "Nom d'utilisateur",
   "settings.display.username.description": "Nom d'utilisateur personnalisé dans les conversations",
+  "settings.shell.title": "Shell",
+  "settings.shell.description": "Shell du terminal pour exécuter des commandes. Auto-detect utilise Git Bash sous Windows, zsh/bash sous macOS et $SHELL sous Linux.",
+  "settings.shell.autoDetect": "Auto-detect",
+  "settings.shell.bash": "Bash",
+  "settings.shell.zsh": "Zsh",
+  "settings.shell.pwsh": "PowerShell Core (pwsh)",
+  "settings.shell.powershell": "Windows PowerShell",
   "settings.display.fontSize.title": "Taille de la police",
   "settings.display.fontSize.description":
     "Ajustez la taille de la police de la webview UI de Kilo indépendamment de VS Code.",

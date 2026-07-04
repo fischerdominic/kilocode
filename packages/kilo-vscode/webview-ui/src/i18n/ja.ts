@@ -1630,6 +1630,13 @@ export const dict = {
 
   "settings.display.username.title": "ユーザー名",
   "settings.display.username.description": "会話に表示されるカスタムユーザー名",
+  "settings.shell.title": "シェル",
+  "settings.shell.description": "コマンドを実行するためのターミナルシェル。自動検出はWindowsでGit Bash、macOSでzsh/bash、Linuxで$SHELLを使用します。",
+  "settings.shell.autoDetect": "自動検出",
+  "settings.shell.bash": "Bash",
+  "settings.shell.zsh": "Zsh",
+  "settings.shell.pwsh": "PowerShell Core (pwsh)",
+  "settings.shell.powershell": "Windows PowerShell",
   "settings.display.fontSize.title": "フォントサイズ",
   "settings.display.fontSize.description": "VS Code とは独立して Kilo webview UI のフォントサイズを調整します。",
   "settings.display.reasoningAutoCollapse.title": "推論を自動で折りたたむ",

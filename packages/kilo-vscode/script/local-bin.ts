@@ -15,6 +15,7 @@ import { currentBwrapTarget, ensureBwrapForTarget } from "./bwrap-helper"
 import { currentFfmpegTarget, ensureFfmpegForTarget } from "./ffmpeg-helper"
 
 const forceRebuild = process.argv.includes("--force")
+const devMode = process.env.KILO_DEV_BINARY === "1"
 
 /**
  * Ensures the VS Code extension has a CLI binary at `packages/kilo-vscode/bin/kilo`.
@@ -37,7 +38,13 @@ const indexingDir = join(packagesDir, "kilo-indexing")
 const sandboxDir = join(packagesDir, "kilo-sandbox")
 
 const targetBinDir = join(kiloVscodeDir, "bin")
-const binName = process.platform === "win32" ? "kilo.exe" : "kilo"
+const binName = devMode
+  ? process.platform === "win32"
+    ? "kilo.exe"
+    : "kilo"
+  : process.platform === "win32"
+    ? "kilo.exe"
+    : "kilo"
 const targetBinPath = join(targetBinDir, binName)
 const versionFile = join(targetBinDir, ".cli-version")
 
@@ -260,8 +267,9 @@ async function main() {
     return null
   })
   if (!sourceBinPath) return
-  await $`mkdir -p ${targetBinDir}`
-  await $`cp ${sourceBinPath} ${targetBinPath}`
+  if (!existsSync(targetBinDir)) mkdirSync(targetBinDir, { recursive: true })
+  const { readFileSync, writeFileSync } = await import("node:fs")
+  writeFileSync(targetBinPath, readFileSync(sourceBinPath))
   await copyTreeSitterResources(sourceBinPath, targetBinPath)
   await copySandboxResources(sourceBinPath, targetBinPath)
   await copyKiloSandboxWorker(sourceBinPath, targetBinPath)

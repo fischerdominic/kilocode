@@ -1644,6 +1644,13 @@ export const dict = {
 
   "settings.display.username.title": "Korisničko ime",
   "settings.display.username.description": "Prilagođeno korisničko ime u razgovorima",
+  "settings.shell.title": "Shell",
+  "settings.shell.description": "Terminal shell za pokretanje komandi. Auto-detect koristi Git Bash na Windows, zsh/bash na macOS i $SHELL na Linux.",
+  "settings.shell.autoDetect": "Auto-detect",
+  "settings.shell.bash": "Bash",
+  "settings.shell.zsh": "Zsh",
+  "settings.shell.pwsh": "PowerShell Core (pwsh)",
+  "settings.shell.powershell": "Windows PowerShell",
   "settings.display.fontSize.title": "Veličina fonta",
   "settings.display.fontSize.description": "Prilagodite veličinu fonta za Kilo webview UI nezavisno od VS Code-a.",
   "settings.display.reasoningAutoCollapse.title": "Automatski sažmi razmišljanje",

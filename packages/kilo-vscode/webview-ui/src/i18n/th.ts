@@ -1611,6 +1611,13 @@ export const dict = {
 
   "settings.display.username.title": "ชื่อผู้ใช้",
   "settings.display.username.description": "ชื่อผู้ใช้กำหนดเองในบทสนทนา",
+  "settings.shell.title": "Shell",
+  "settings.shell.description": "เทอร์มินัล shell สำหรับรันคำสั่ง Auto-detect ใช้ Git Bash บน Windows, zsh/bash บน macOS และ $SHELL บน Linux",
+  "settings.shell.autoDetect": "Auto-detect",
+  "settings.shell.bash": "Bash",
+  "settings.shell.zsh": "Zsh",
+  "settings.shell.pwsh": "PowerShell Core (pwsh)",
+  "settings.shell.powershell": "Windows PowerShell",
   "settings.display.fontSize.title": "ขนาดฟอนต์",
   "settings.display.fontSize.description": "ปรับขนาดฟอนต์ webview UI ของ Kilo แยกเป็นอิสระจาก VS Code.",
   "settings.display.reasoningAutoCollapse.title": "ยุบเหตุผลอัตโนมัติ",

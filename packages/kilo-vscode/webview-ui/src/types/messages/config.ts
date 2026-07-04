@@ -133,6 +133,7 @@ export interface Config {
   skills?: SkillsConfig
   snapshot?: boolean
   remote_control?: boolean
+  shell?: string
   terminal_command_display?: TerminalCommandDisplay
   code_edit_display?: CodeEditDisplay
   hide_prompt_training_models?: boolean

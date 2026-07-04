@@ -197,12 +197,14 @@ const defaultPreferred = lazy(() => select(process.env.SHELL))
 const defaultAcceptable = lazy(() => select(process.env.SHELL, { acceptable: true }))
 
 export function preferred(configShell?: string) {
+  if (Flag.KILO_SHELL) return select(Flag.KILO_SHELL)
   if (configShell) return select(configShell)
   return defaultPreferred()
 }
 preferred.reset = () => defaultPreferred.reset()
 
 export function acceptable(configShell?: string) {
+  if (Flag.KILO_SHELL) return select(Flag.KILO_SHELL, { acceptable: true })
   if (configShell) return select(configShell, { acceptable: true })
   return defaultAcceptable()
 }

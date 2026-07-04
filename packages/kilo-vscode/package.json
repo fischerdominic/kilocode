@@ -1071,6 +1071,26 @@
           "type": "boolean",
           "default": false,
           "description": "Render Markdown files in Kilo diff viewers by default. Toggle this from a Markdown file header in the diff viewer."
+        },
+        "kilo-code.new.shell": {
+          "type": "string",
+          "scope": "application",
+          "default": "",
+          "enum": [
+            "",
+            "bash",
+            "zsh",
+            "pwsh",
+            "powershell"
+          ],
+          "enumDescriptions": [
+            "Auto-detect (uses Git Bash on Windows, zsh/bash on macOS, $SHELL on Linux)",
+            "Bash — POSIX-compatible shell, preferred on Windows and Linux",
+            "Zsh — Extended Bourne shell with many improvements",
+            "PowerShell Core (pwsh) — Cross-platform shell based on .NET",
+            "Windows PowerShell — Built-in Windows shell"
+          ],
+          "description": "Shell to use for terminal commands. Overrides the auto-detected shell. Set to empty to use auto-detection."
         }
       }
     }

@@ -212,7 +212,7 @@ async function compile() {
   }
 
   console.log("[launch] Building extension...")
-  await $`bun run package`.cwd(root).env(cleanEnv(process.env))
+  await $`bun run package`.cwd(root).env({ ...cleanEnv(process.env), KILO_DEV_BINARY: "1" })
   console.log("[launch] Build complete")
 }
 

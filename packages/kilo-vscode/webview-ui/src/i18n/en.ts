@@ -1616,6 +1616,13 @@ export const dict = {
 
   "settings.display.username.title": "Username",
   "settings.display.username.description": "Custom username displayed in conversations",
+  "settings.shell.title": "Shell",
+  "settings.shell.description": "Terminal shell for running commands. Auto-detect uses Git Bash on Windows, zsh/bash on macOS, and $SHELL on Linux.",
+  "settings.shell.autoDetect": "Auto-detect",
+  "settings.shell.bash": "Bash",
+  "settings.shell.zsh": "Zsh",
+  "settings.shell.pwsh": "PowerShell Core (pwsh)",
+  "settings.shell.powershell": "Windows PowerShell",
   "settings.display.fontSize.title": "Font Size",
   "settings.display.fontSize.description": "Adjust the Kilo webview UI font size independently from VS Code.",
   "settings.display.reasoningAutoCollapse.title": "Auto-Collapse Reasoning",
