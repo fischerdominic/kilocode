@@ -1091,6 +1091,13 @@ export const dict = {
 
   "settings.display.username.title": "Имя пользователя",
   "settings.display.username.description": "Пользовательское имя в разговорах",
+  "settings.shell.title": "Оболочка",
+  "settings.shell.description": "Оболочка терминала для выполнения команд. Автоопределение использует Git Bash в Windows, zsh/bash в macOS и $SHELL в Linux.",
+  "settings.shell.autoDetect": "Автоопределение",
+  "settings.shell.bash": "Bash",
+  "settings.shell.zsh": "Zsh",
+  "settings.shell.pwsh": "PowerShell Core (pwsh)",
+  "settings.shell.powershell": "Windows PowerShell",
   "settings.display.fontSize.title": "Размер шрифта",
   "settings.display.fontSize.description": "Настройте размер шрифта webview UI для Kilo независимо от VS Code.",
   "settings.display.reasoningAutoCollapse.title": "Автоматически сворачивать рассуждение",

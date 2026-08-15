@@ -1092,6 +1092,13 @@ export const dict = {
 
   "settings.display.username.title": "Brugernavn",
   "settings.display.username.description": "Brugerdefineret brugernavn i samtaler",
+  "settings.shell.title": "Shell",
+  "settings.shell.description": "Terminalshell til at køre kommandoer. Auto-detect bruger Git Bash på Windows, zsh/bash på macOS og $SHELL på Linux.",
+  "settings.shell.autoDetect": "Auto-detect",
+  "settings.shell.bash": "Bash",
+  "settings.shell.zsh": "Zsh",
+  "settings.shell.pwsh": "PowerShell Core (pwsh)",
+  "settings.shell.powershell": "Windows PowerShell",
   "settings.display.fontSize.title": "Skriftstørrelse",
   "settings.display.fontSize.description": "Juster skriftstørrelsen for Kilo webview UI uafhængigt af VS Code.",
   "settings.display.reasoningAutoCollapse.title": "Skjul ræsonnement automatisk",

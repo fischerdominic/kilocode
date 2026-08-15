@@ -360,8 +360,9 @@ async function main() {
     return null
   })
   if (!sourceBinPath) return
-  await $`mkdir -p ${targetBinDir}`
-  await $`cp ${sourceBinPath} ${targetBinPath}`
+  if (!existsSync(targetBinDir)) mkdirSync(targetBinDir, { recursive: true })
+  const { readFileSync, writeFileSync } = await import("node:fs")
+  writeFileSync(targetBinPath, readFileSync(sourceBinPath))
   await copyTreeSitterResources(sourceBinPath, targetBinPath)
   await copySandboxResources(sourceBinPath, targetBinPath)
   await copyKiloSandboxWorker(sourceBinPath, targetBinPath)

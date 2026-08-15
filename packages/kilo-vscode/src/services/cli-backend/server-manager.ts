@@ -93,6 +93,7 @@ export class ServerManager {
       console.log("[Kilo New] ServerManager: 🎬 Spawning CLI process:", cliPath, ["serve", "--port", "0"])
       const cfg = vscode.workspace.getConfiguration("kilo-code.new")
       const claudeCompat = cfg.get<boolean>("claudeCodeCompat", false)
+      const userShell = cfg.get<string>("shell", "").trim()
       // Pin cwd so the CLI doesn't inherit the extension host's cwd ("/" under F5 debug)
       // or "$HOME" in empty VS Code windows.
       const folders = vscode.workspace.workspaceFolders
@@ -153,6 +154,7 @@ export class ServerManager {
           KILOCODE_VERSION: this.context.extension.packageJSON.version,
           KILOCODE_EDITOR_NAME: `${vscode.env.appName} ${vscode.version}`,
           ...(!claudeCompat && { KILO_DISABLE_CLAUDE_CODE: "true" }),
+          ...(userShell && { KILO_SHELL: userShell }),
           ...resolveTreeSitterEnv(this.context.extensionPath),
           ...bwrapEnv,
         },
@@ -233,10 +235,16 @@ export class ServerManager {
 
   private getCliPath(): string {
     // Always use the bundled binary from the extension directory
-    const binName = process.platform === "win32" ? "kilo.exe" : "kilo"
-    const cliPath = path.join(this.context.extensionPath, "bin", binName)
-    console.log("[Kilo New] ServerManager: 📦 Using CLI path:", cliPath)
-    return cliPath
+    const devBinName = process.platform === "win32" ? "kilo.exe" : "kilo"
+    const prodBinName = process.platform === "win32" ? "kilo.exe" : "kilo"
+    const devPath = path.join(this.context.extensionPath, "bin", devBinName)
+    const prodPath = path.join(this.context.extensionPath, "bin", prodBinName)
+    if (fs.existsSync(devPath)) {
+      console.log("[Kilo New] ServerManager: 📦 Using dev CLI path:", devPath)
+      return devPath
+    }
+    console.log("[Kilo New] ServerManager: 📦 Using CLI path:", prodPath)
+    return prodPath
   }
 
   /**

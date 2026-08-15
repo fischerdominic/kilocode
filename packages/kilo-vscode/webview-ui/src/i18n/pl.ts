@@ -1097,6 +1097,13 @@ export const dict = {
 
   "settings.display.username.title": "Nazwa użytkownika",
   "settings.display.username.description": "Niestandardowa nazwa użytkownika w rozmowach",
+  "settings.shell.title": "Powłoka",
+  "settings.shell.description": "Powłoka terminala do uruchamiania poleceń. Wykrywanie automatyczne używa Git Bash na Windows, zsh/bash na macOS i $SHELL na Linuxie.",
+  "settings.shell.autoDetect": "Wykrywanie automatyczne",
+  "settings.shell.bash": "Bash",
+  "settings.shell.zsh": "Zsh",
+  "settings.shell.pwsh": "PowerShell Core (pwsh)",
+  "settings.shell.powershell": "Windows PowerShell",
   "settings.display.fontSize.title": "Rozmiar czcionki",
   "settings.display.fontSize.description": "Dostosuj rozmiar czcionki webview UI Kilo niezależnie od VS Code.",
   "settings.display.reasoningAutoCollapse.title": "Automatycznie zwijaj rozumowanie",

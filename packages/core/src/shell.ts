@@ -204,6 +204,7 @@ let defaultPreferred: string | undefined
 let defaultAcceptable: string | undefined
 
 export function preferred(configShell?: string) {
+  if (Flag.KILO_SHELL) return select(Flag.KILO_SHELL)
   if (configShell) return select(configShell)
   defaultPreferred ??= select(process.env.SHELL)
   return defaultPreferred
@@ -213,6 +214,7 @@ preferred.reset = () => {
 }
 
 export function acceptable(configShell?: string) {
+  if (Flag.KILO_SHELL) return select(Flag.KILO_SHELL, { acceptable: true })
   if (configShell) return select(configShell, { acceptable: true })
   defaultAcceptable ??= select(process.env.SHELL, { acceptable: true })
   return defaultAcceptable

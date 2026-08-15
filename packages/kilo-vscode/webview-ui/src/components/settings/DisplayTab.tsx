@@ -14,6 +14,14 @@ interface LayoutOption {
   labelKey: string
 }
 
+const SHELL_OPTIONS: LayoutOption[] = [
+  { value: "", labelKey: "settings.shell.autoDetect" },
+  { value: "bash", labelKey: "settings.shell.bash" },
+  { value: "zsh", labelKey: "settings.shell.zsh" },
+  { value: "pwsh", labelKey: "settings.shell.pwsh" },
+  { value: "powershell", labelKey: "settings.shell.powershell" },
+]
+
 const TERMINAL_OPTIONS: LayoutOption[] = [
   { value: "expanded", labelKey: "settings.display.terminalCommand.expanded" },
   { value: "collapsed", labelKey: "settings.display.terminalCommand.collapsed" },
@@ -43,6 +51,25 @@ const DisplayTab: Component = () => {
               onChange={(val) => updateConfig({ username: val.trim() || undefined })}
             />
           </div>
+        </SettingsRow>
+
+        <SettingsRow
+          title={language.t("settings.shell.title")}
+          description={language.t("settings.shell.description")}
+        >
+          <Select
+            options={SHELL_OPTIONS}
+            current={SHELL_OPTIONS.find((o) => o.value === (config().shell ?? ""))}
+            value={(o) => o.value}
+            label={(o) => language.t(o.labelKey)}
+            onSelect={(o) => {
+              if (!o) return
+              updateConfig({ shell: o.value || undefined })
+            }}
+            variant="secondary"
+            size="small"
+            triggerVariant="settings"
+          />
         </SettingsRow>
 
         <SettingsRow

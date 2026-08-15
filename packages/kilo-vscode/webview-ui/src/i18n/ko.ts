@@ -1074,6 +1074,13 @@ export const dict = {
 
   "settings.display.username.title": "사용자 이름",
   "settings.display.username.description": "대화에 표시되는 사용자 정의 사용자 이름",
+  "settings.shell.title": "쉘",
+  "settings.shell.description": "명령을 실행하는 터미널 쉘. 자동 감지는 Windows에서 Git Bash, macOS에서 zsh/bash, Linux에서 $SHELL을 사용합니다.",
+  "settings.shell.autoDetect": "자동 감지",
+  "settings.shell.bash": "Bash",
+  "settings.shell.zsh": "Zsh",
+  "settings.shell.pwsh": "PowerShell Core (pwsh)",
+  "settings.shell.powershell": "Windows PowerShell",
   "settings.display.fontSize.title": "글꼴 크기",
   "settings.display.fontSize.description": "VS Code와 독립적으로 Kilo webview UI 글꼴 크기를 조정합니다.",
   "settings.display.reasoningAutoCollapse.title": "추론 자동 접기",
