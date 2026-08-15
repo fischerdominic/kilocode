@@ -8,7 +8,7 @@ import { profile } from "@/kilocode/sandbox/policy"
 import { SandboxPreference } from "@/kilocode/sandbox/preference"
 import { SandboxStore } from "@/kilocode/sandbox/store"
 import type { InstanceContext } from "@/project/instance-context"
-import { ProjectID } from "@/project/schema"
+import { ProjectV2 } from "@opencode-ai/core/project"
 import { tmpdir } from "../../fixture/fixture"
 
 const kilo = [
@@ -74,7 +74,7 @@ function context(directory: string, worktree: string, dirs: Dirs): InstanceConte
     directory,
     worktree,
     project: {
-      id: ProjectID.make("sandbox-policy-test"),
+      id: ProjectV2.ID.make("sandbox-policy-test"),
       worktree: dirs.main,
       vcs: "git",
       time: { created: 0, updated: 0 },
@@ -128,6 +128,17 @@ describe("sandbox policy", () => {
     expect(new Set(shared)).toEqual(expected(dirs.a))
     expect(actual).not.toContain(dirs.main)
     expect(actual).not.toContain(dirs.b)
+  })
+
+  test("drops inherited writable ancestors for a managed worktree", async () => {
+    await using tmp = await fixture()
+    const dirs = tmp.extra
+    const policy = profile(context(dirs.a, dirs.main, dirs), "deny", [dirs.main, dirs.approved])
+    const paths = policy.filesystem.allowWrite.map((rule) => rule.path)
+
+    expect(paths).not.toContain(dirs.main)
+    expect(paths).toContain(dirs.approved)
+    expect(paths).toContain(dirs.a)
   })
 
   posix("fails closed when a worktree marker cannot be resolved", async () => {

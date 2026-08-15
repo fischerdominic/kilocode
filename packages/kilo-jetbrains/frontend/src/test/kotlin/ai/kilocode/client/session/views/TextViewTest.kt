@@ -38,6 +38,17 @@ class TextViewTest : BasePlatformTestCase() {
         assertEquals("", view.markdown())
     }
 
+    fun `test empty text view does not reserve transcript height`() {
+        val view = TextView(Text("p1"))
+        view.setSize(260, 1)
+
+        assertEquals(0, view.preferredSize.height)
+
+        view.appendDelta("hello")
+
+        assertTrue(view.preferredSize.height > 0)
+    }
+
     fun `test Text with content sets initial markdown`() {
         val text = Text("p1").also { it.content.append("hello **world**") }
         val view = TextView(text)
@@ -218,14 +229,14 @@ class TextViewTest : BasePlatformTestCase() {
         assertEquals(style.editorForeground, view.md.foreground)
     }
 
-    fun `test prompt view uses transcript font and editor background`() {
+    fun `test prompt view uses transcript font and prompt background`() {
         val style = SessionEditorStyle.create(family = "Courier New", size = 23)
         val view = PromptView(Text("p1"))
 
         view.applyStyle(style)
 
         assertEquals(style.transcriptFont, view.md.font)
-        assertEquals(style.editorBackground, view.md.background)
+        assertEquals(SessionUiStyle.View.Prompt.bgColor(style), view.md.background)
         assertFalse(view.contentOpaque())
     }
 

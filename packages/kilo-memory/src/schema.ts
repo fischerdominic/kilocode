@@ -1,3 +1,9 @@
+/** Wire contract for suppressible background-capture failures: guardReason emits this as the
+ * `memory.error` reason, and every client surface (TUI toast filter, VS Code provider) matches
+ * against this same constant rather than a local literal. Lives here (dependency-free module)
+ * so clients can import it without pulling the capture pipeline into their bundles. */
+export const TRANSIENT = "transient" as const
+
 export namespace MemorySchema {
   export const VERSION = 1
   export const maxStoredDigestSummary = 4_000
@@ -51,6 +57,7 @@ export namespace MemorySchema {
     scope: "project"
     autoInject: boolean
     autoConsolidate: boolean
+    verbose: boolean
     capture: Capture
     limits: Limits
     stats: Stats
@@ -153,6 +160,7 @@ export namespace MemorySchema {
       scope: "project",
       autoInject: true,
       autoConsolidate: true,
+      verbose: false,
       capture: { ...capture },
       limits: { ...limits },
       stats: { ...stats },
@@ -170,6 +178,7 @@ export namespace MemorySchema {
       scope: input.scope,
       autoInject: input.autoInject,
       autoConsolidate: input.autoConsolidate,
+      verbose: input.verbose,
       capture: input.capture,
       stats: input.stats,
     }
@@ -190,6 +199,7 @@ export namespace MemorySchema {
       scope: "project",
       autoInject: true,
       autoConsolidate: bool(input.autoConsolidate, base.autoConsolidate),
+      verbose: bool(input.verbose, base.verbose),
       capture: {
         mode: "selective",
         turnClose: bool(cap.turnClose, base.capture.turnClose),

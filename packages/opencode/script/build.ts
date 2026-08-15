@@ -26,36 +26,6 @@ import { KiloSandboxWorker } from "./kilocode/kilo-sandbox-worker"
 import { KiloSandboxNetwork } from "./kilocode/kilo-sandbox-network"
 // kilocode_change end
 
-// Load migrations from migration directories
-const migrationDirs = (
-  await fs.promises.readdir(path.join(dir, "migration"), {
-    withFileTypes: true,
-  })
-)
-  .filter((entry) => entry.isDirectory() && /^\d{4}\d{2}\d{2}\d{2}\d{2}\d{2}/.test(entry.name))
-  .map((entry) => entry.name)
-  .sort()
-
-const migrations = await Promise.all(
-  migrationDirs.map(async (name) => {
-    const file = path.join(dir, "migration", name, "migration.sql")
-    const sql = await Bun.file(file).text()
-    const match = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/.exec(name)
-    const timestamp = match
-      ? Date.UTC(
-          Number(match[1]),
-          Number(match[2]) - 1,
-          Number(match[3]),
-          Number(match[4]),
-          Number(match[5]),
-          Number(match[6]),
-        )
-      : 0
-    return { sql, timestamp, name }
-  }),
-)
-console.log(`Loaded ${migrations.length} migrations`)
-
 const singleFlag = process.argv.includes("--single")
 const baselineFlag = process.argv.includes("--baseline")
 const skipInstall = process.argv.includes("--skip-install")
@@ -81,9 +51,46 @@ async function copyTreeSitterWasms(outputDir: string) {
   console.log(`copied ${languageWasmFiles.length + 1} tree-sitter wasm files to ${targetDir}`)
 }
 
+// kilocode_change start
+async function isKiloConsoleUpToDate(app: string, out: string) {
+  const indexHtml = path.join(out, "index.html")
+  if (!fs.existsSync(indexHtml)) return false
+  const outStat = await fs.promises.stat(indexHtml)
+  const inputs = [
+    path.join(app, "src"),
+    path.join(app, "package.json"),
+    path.join(app, "vite.config.ts"),
+    path.join(app, "index.html"),
+    path.resolve(dir, "../kilo-web-ui/src"),
+    path.resolve(dir, "../kilo-indexing/src"),
+    path.resolve(dir, "../kilo-ui/src"),
+    path.resolve(dir, "../ui/src"),
+    path.resolve(dir, "../sdk/js/src"),
+    path.resolve(dir, "../../bun.lock"),
+  ]
+  for (const p of inputs) {
+    if (!fs.existsSync(p)) continue
+    const st = await fs.promises.stat(p)
+    if (st.isDirectory()) {
+      const glob = new Bun.Glob("**/*")
+      for await (const file of glob.scan({ cwd: p })) {
+        const fileStat = await fs.promises.stat(path.join(p, file))
+        if (fileStat.mtimeMs > outStat.mtimeMs) return false
+      }
+    } else if (st.mtimeMs > outStat.mtimeMs) {
+      return false
+    }
+  }
+  return true
+}
+
 async function buildKiloConsole() {
   const app = path.resolve(dir, "../kilo-console")
   const out = path.join(app, "dist")
+  if (await isKiloConsoleUpToDate(app, out)) {
+    console.log(`reusing existing Kilo Console build at ${out}`)
+    return out
+  }
   console.log("building Kilo Console")
   const proc = Bun.spawn([process.execPath, "run", "build"], {
     cwd: app,
@@ -96,6 +103,7 @@ async function buildKiloConsole() {
   if (code !== 0) throw new Error(`Kilo Console build failed with exit code ${code}`)
   return out
 }
+// kilocode_change end
 
 async function copyKiloConsole(input: string, outputDir: string) {
   const target = path.join(outputDir, "console")
@@ -162,6 +170,8 @@ async function smokeModels(binaryPath: string) {
 //   ].join("\n")
 // }
 // kilocode_change end
+
+const treeSitterWorker = await Bun.file(fileURLToPath(import.meta.resolve("@opentui/core/parser.worker"))).text()
 
 const allTargets: {
   os: string
@@ -247,17 +257,20 @@ const targets = singleFlag
     })
   : allTargets
 
-await $`rm -rf dist`
 // kilocode_change start
-const kiloConsoleDist = await buildKiloConsole()
-const kiloSandboxWorker = await KiloSandboxWorker.bundle()
-const kiloSandboxNetwork = await KiloSandboxNetwork.bundle()
+await $`rm -rf dist`
+const [kiloConsoleDist, kiloSandboxWorker, kiloSandboxNetwork] = await Promise.all([
+  buildKiloConsole(),
+  KiloSandboxWorker.bundle(),
+  KiloSandboxNetwork.bundle(),
+])
 // kilocode_change end
 
 const binaries: Record<string, string> = {}
 if (!skipInstall) {
   await $`bun install --os="*" --cpu="*" @opentui/core@${pkg.dependencies["@opentui/core"]}`
   await $`bun install --os="*" --cpu="*" @parcel/watcher@${pkg.dependencies["@parcel/watcher"]}`
+  await $`bun install --os="*" --cpu="*" @ff-labs/fff-bun@${pkg.dependencies["@ff-labs/fff-bun"]}`
 }
 for (const item of targets) {
   const name = [
@@ -280,18 +293,14 @@ for (const item of targets) {
       : undefined
   // kilocode_change end
 
-  const localPath = path.resolve(dir, "node_modules/@opentui/core/parser.worker.js")
-  const rootPath = path.resolve(dir, "../../node_modules/@opentui/core/parser.worker.js")
-  const parserWorker = fs.realpathSync(fs.existsSync(localPath) ? localPath : rootPath)
-  const workerPath = "./src/cli/cmd/tui/worker.ts"
+  const workerPath = "./src/cli/tui/worker.ts"
+  const treeSitterWorkerPath = "opentui-tree-sitter-worker.js"
   // kilocode_change start
   const sessionExportWorkerPath = "./src/kilocode/session-export/worker.ts"
   const indexingWorkerPath = "./src/kilocode/indexing-worker.ts"
   // kilocode_change end
 
-  // Use platform-specific bunfs root path based on target OS
   const bunfsRoot = item.os === "win32" ? "B:/~BUN/root/" : "/$bunfs/root/"
-  const workerRelativePath = path.relative(dir, parserWorker).replaceAll("\\", "/")
 
   await Bun.build({
     conditions: ["bun", "node"], // kilocode_change - port anomalyco/opencode#30873; current form from #31566
@@ -325,14 +334,14 @@ for (const item of targets) {
       windows: {},
     },
     // kilocode_change start - packages/app was removed; no embedded web UI
-    files: {},
-    entrypoints: ["./src/index.ts", parserWorker, workerPath, sessionExportWorkerPath, indexingWorkerPath],
+    files: { [treeSitterWorkerPath]: treeSitterWorker },
+    entrypoints: ["./src/index.ts", workerPath, treeSitterWorkerPath, sessionExportWorkerPath, indexingWorkerPath],
     // kilocode_change end
     define: {
+      FFF_LIBC: JSON.stringify(item.abi === "musl" ? "musl" : "gnu"),
       KILO_VERSION: `'${Script.version}'`,
-      KILO_MIGRATIONS: JSON.stringify(migrations),
       KILO_MODELS_DEV: generated.modelsData,
-      OTUI_TREE_SITTER_WORKER_PATH: bunfsRoot + workerRelativePath,
+      OTUI_TREE_SITTER_WORKER_PATH: bunfsRoot + treeSitterWorkerPath,
       KILO_WORKER_PATH: workerPath,
       // kilocode_change start
       KILO_SESSION_EXPORT_WORKER_PATH: sessionExportWorkerPath,
@@ -347,6 +356,7 @@ for (const item of targets) {
       KILO_BWRAP_SHA256: bwrap ? `'${bwrap}'` : "undefined",
       KILO_BUILD_KIND: Script.release ? `'release'` : `'source'`,
       // kilocode_change end
+      ...(item.os === "linux" ? { "process.env.OPENTUI_LIBC": JSON.stringify(item.abi ?? "glibc") } : {}),
     },
   })
 
@@ -432,6 +442,7 @@ for (const item of targets) {
           url: "https://github.com/Kilo-Org/kilocode",
         },
         // kilocode_change end
+        ...(item.abi ? { libc: [item.abi] } : {}),
       },
       null,
       2,

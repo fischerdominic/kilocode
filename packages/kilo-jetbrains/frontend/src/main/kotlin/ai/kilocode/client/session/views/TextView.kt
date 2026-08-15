@@ -7,6 +7,7 @@ import ai.kilocode.client.session.openSessionLink
 import ai.kilocode.client.session.model.Content
 import ai.kilocode.client.session.model.Text
 import ai.kilocode.client.session.ui.style.SessionEditorStyle
+import ai.kilocode.client.session.ui.style.SessionUiStyle
 import ai.kilocode.client.session.ui.selection.SessionCopyTarget
 import ai.kilocode.client.session.ui.selection.SessionSelection
 import ai.kilocode.client.session.views.base.PartView
@@ -57,12 +58,14 @@ open class TextView(
         add(md.component, BorderLayout.CENTER)
         add(placeholder, BorderLayout.SOUTH)
         if (text.content.isNotEmpty()) md.set(text.content.toString())
+        syncContent()
         syncToolbar()
     }
 
     override fun update(content: Content) {
         if (content !is Text) return
         md.set(content.content.toString())
+        syncContent()
         syncToolbar()
         refresh()
     }
@@ -70,6 +73,7 @@ open class TextView(
     override fun appendDelta(delta: String) {
         if (delta.isEmpty()) return
         md.append(delta)
+        syncContent()
         syncToolbar()
         refresh()
     }
@@ -121,11 +125,16 @@ open class TextView(
 
     protected open fun styleFont(style: SessionEditorStyle) = style.transcriptFont
 
-    protected open fun styleBackground(style: SessionEditorStyle) = style.editorBackground
+    protected open fun styleBackground(style: SessionEditorStyle) = SessionUiStyle.Colors.codeBlockBackground()
 
     protected fun refresh() {
         revalidate()
         repaint()
+    }
+
+    @RequiresEdt
+    private fun syncContent() {
+        md.component.isVisible = md.markdown().isNotBlank()
     }
 
     @RequiresEdt

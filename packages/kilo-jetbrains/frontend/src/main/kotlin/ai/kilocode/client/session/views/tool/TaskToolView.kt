@@ -4,10 +4,11 @@ import ai.kilocode.client.plugin.KiloBundle
 import ai.kilocode.client.session.model.Content
 import ai.kilocode.client.session.model.Tool
 import ai.kilocode.client.session.model.ToolExecState
+import ai.kilocode.client.session.ui.SessionCodeScroll
 import ai.kilocode.client.session.ui.selection.SessionSelection
 import ai.kilocode.client.session.ui.style.SessionEditorStyle
 import ai.kilocode.client.session.ui.style.SessionUiStyle
-import ai.kilocode.client.session.views.base.SecondarySessionPartView
+import ai.kilocode.client.session.views.base.AbstractSessionPartView
 import ai.kilocode.client.ui.UiStyle
 import ai.kilocode.client.ui.layout.Stack
 import ai.kilocode.client.ui.layout.StackAxis
@@ -16,7 +17,6 @@ import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.concurrency.annotations.RequiresEdt
-import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -32,7 +32,7 @@ class TaskToolView(
     tool: Tool,
     private val selection: SessionSelection? = null,
     private val parts: ToolParts = toolParts(tool),
-) : SecondarySessionPartView(parts.header, { TaskBody(parts.glyph).scroll }), UiDataProvider {
+) : AbstractSessionPartView(parts.header, { TaskBody(parts.glyph).scroll }), UiDataProvider {
 
     override val contentId: String = tool.id
 
@@ -43,7 +43,6 @@ class TaskToolView(
     private var collapsed = false
 
     init {
-        bindHeader(parts.glyph, parts.title, parts.sub, parts.state, parts.center, parts.controls, parts.slot)
         applyStyle(style)
         sync()
         if (item.childTools.isNotEmpty()) expand()
@@ -106,7 +105,7 @@ class TaskToolView(
     override fun getPreferredSize(): Dimension {
         val size = super.getPreferredSize()
         if (!bodyVisible()) return size
-        val height = row.preferredSize.height + bodyMaxHeight()
+        val height = row.preferredSize.height + expandedGap() + bodyMaxHeight()
         return Dimension(size.width, minOf(size.height, height))
     }
 
@@ -222,7 +221,7 @@ class TaskToolView(
         private var item = tool
         val icon = JBLabel()
         val title = JBLabel()
-        val sub = JBLabel().apply { foreground = UiStyle.Colors.weak() }
+        val sub = JBLabel().apply { foreground = SessionUiStyle.Text.Secondary.foreground() }
         val panel = JPanel(BorderLayout(UiStyle.Gap.md(), 0)).apply {
             isOpaque = false
             add(icon, BorderLayout.WEST)
@@ -266,7 +265,7 @@ private class TaskBody(glyph: JBLabel) {
     val panel = object : JPanel(BorderLayout()) {
         override fun updateUI() {
             super.updateUI()
-            background = SessionUiStyle.View.Surface.bgColor()
+            background = SessionUiStyle.Colors.codeBlockBackground()
             border = taskBodyBorder(glyph)
         }
     }.apply {
@@ -275,7 +274,7 @@ private class TaskBody(glyph: JBLabel) {
     val scroll = TaskBodyScroll(this)
 }
 
-private class TaskBodyScroll(val body: TaskBody) : JBScrollPane(body.panel) {
+private class TaskBodyScroll(val body: TaskBody) : SessionCodeScroll(body.panel) {
     val rows: Stack get() = body.rows
     val panel: JPanel get() = body.panel
 
@@ -287,8 +286,7 @@ private class TaskBodyScroll(val body: TaskBody) : JBScrollPane(body.panel) {
     override fun updateUI() {
         super.updateUI()
         border = JBUI.Borders.empty()
-        background = SessionUiStyle.View.Surface.bgColor()
-        viewport?.background = SessionUiStyle.View.Surface.bgColor()
+        viewport?.background = SessionUiStyle.Colors.codeBlockBackground()
     }
 }
 
@@ -307,13 +305,14 @@ private class TaskRows : Stack(StackAxis.VERTICAL, UiStyle.Gap.sm()), Scrollable
         direction: Int,
     ) = visibleRect.height
 
-    override fun getMaximumSize() = JBDimension(Int.MAX_VALUE, super.getMaximumSize().height)
+    // super height is already scaled px; a JBDimension would scale it again under IDE zoom.
+    override fun getMaximumSize() = Dimension(Int.MAX_VALUE, super.getMaximumSize().height)
 }
 
 private fun rowTitleColor(tool: Tool) = if (tool.state == ToolExecState.ERROR) {
     UiStyle.Colors.errorLabelForeground()
 } else {
-    UiStyle.Colors.weak()
+    SessionUiStyle.Text.Secondary.foreground()
 }
 
 private fun taskBodyBorder(glyph: JBLabel) = run {
