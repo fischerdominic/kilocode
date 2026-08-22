@@ -172,12 +172,12 @@ describe("attention defaults", () => {
     }
     const properties = manifest.contributes.configuration.properties
 
-    expect(properties["kilo-code.new.attention.enabled"]?.default).toBe(false)
-    expect(properties["kilo-code.new.attention.sound"]?.default).toBe("default")
-    expect(properties["kilo-code.new.attention.sound"]?.enum).toEqual(["default", "system", ...CustomSoundIDs])
-    expect(properties["kilo-code.new.sounds.agentEnabled"]).toBeUndefined()
-    expect(properties["kilo-code.new.sounds.permissionsEnabled"]).toBeUndefined()
-    expect(properties["kilo-code.new.sounds.errorsEnabled"]).toBeUndefined()
+    expect(properties["fox-code.new.attention.enabled"]?.default).toBe(false)
+    expect(properties["fox-code.new.attention.sound"]?.default).toBe("default")
+    expect(properties["fox-code.new.attention.sound"]?.enum).toEqual(["default", "system", ...CustomSoundIDs])
+    expect(properties["fox-code.new.sounds.agentEnabled"]).toBeUndefined()
+    expect(properties["fox-code.new.sounds.permissionsEnabled"]).toBeUndefined()
+    expect(properties["fox-code.new.sounds.errorsEnabled"]).toBeUndefined()
   })
 
   it("resolves global sound choices safely", () => {

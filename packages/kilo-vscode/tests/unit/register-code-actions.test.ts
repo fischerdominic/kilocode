@@ -90,10 +90,10 @@ describe("registerCodeActions", () => {
   it("reveals the sidebar before adding selected code to context", async () => {
     const state = setup()
 
-    await state.commands.get("kilo-code.new.addToContext")?.()
+    await state.commands.get("fox-code.new.addToContext")?.()
 
     expect(state.events).toEqual(["focus", "wait", "post"])
-    expect(state.executed).toEqual([["kilo-code.SidebarProvider.focus"]])
+    expect(state.executed).toEqual([["fox-code.SidebarProvider.focus"]])
     expect(state.waits).toEqual(["provider"])
     expect(state.posts).toEqual([
       {
@@ -106,7 +106,7 @@ describe("registerCodeActions", () => {
   it("adds selected code to the active Agent Manager without revealing the sidebar", async () => {
     const state = setup(true)
 
-    await state.commands.get("kilo-code.new.addToContext")?.()
+    await state.commands.get("fox-code.new.addToContext")?.()
 
     expect(state.events).toEqual(["wait", "post"])
     expect(state.executed).toEqual([])
@@ -122,7 +122,7 @@ describe("registerCodeActions", () => {
   it("does not post to the Agent Manager when its readiness wait is cancelled", async () => {
     const state = setup(true, false)
 
-    await state.commands.get("kilo-code.new.addToContext")?.()
+    await state.commands.get("fox-code.new.addToContext")?.()
 
     expect(state.events).toEqual(["wait"])
     expect(state.posts).toEqual([])
@@ -131,7 +131,7 @@ describe("registerCodeActions", () => {
   it("toggles chat search on the active Agent Manager once it is ready", async () => {
     const state = setup(true)
 
-    await state.commands.get("kilo-code.new.toggleChatSearch")?.()
+    await state.commands.get("fox-code.new.toggleChatSearch")?.()
 
     expect(state.events).toEqual(["wait", "post"])
     expect(state.posts).toEqual([{ type: "action", action: "focusSearch" }])
@@ -140,7 +140,7 @@ describe("registerCodeActions", () => {
   it("does not toggle chat search when Agent Manager readiness is cancelled", async () => {
     const state = setup(true, false)
 
-    await state.commands.get("kilo-code.new.toggleChatSearch")?.()
+    await state.commands.get("fox-code.new.toggleChatSearch")?.()
 
     expect(state.events).toEqual(["wait"])
     expect(state.posts).toEqual([])

@@ -48,7 +48,7 @@ export class VscodeHost implements Host {
     worktreeDirectories?: () => string[]
   }): PanelContext {
     const panel = vscode.window.createWebviewPanel(
-      "kilo-code.new.AgentManagerPanel",
+      "fox-code.new.AgentManagerPanel",
       "Agent Manager",
       vscode.ViewColumn.One,
       {
@@ -230,7 +230,7 @@ export class VscodeHost implements Host {
   }
 
   multiProject(): boolean {
-    return vscode.workspace.getConfiguration("kilo-code.new.experimental").get("multiProject", false)
+    return vscode.workspace.getConfiguration("fox-code.new.experimental").get("multiProject", false)
   }
 
   readProjects(): unknown {
@@ -251,7 +251,7 @@ export class VscodeHost implements Host {
 
   onDidChangeMultiProject(cb: (enabled: boolean) => void): Disposable {
     return vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration("kilo-code.new.experimental.multiProject")) cb(this.multiProject())
+      if (e.affectsConfiguration("fox-code.new.experimental.multiProject")) cb(this.multiProject())
     })
   }
 
@@ -260,7 +260,7 @@ export class VscodeHost implements Host {
   }
 
   autoBranchNaming(): { enabled: boolean; prefix: string } {
-    const cfg = vscode.workspace.getConfiguration("kilo-code.new.agentManager")
+    const cfg = vscode.workspace.getConfiguration("fox-code.new.agentManager")
     return {
       enabled: cfg.get("autoBranchNaming", true),
       prefix: cfg.get("branchPrefix", ""),
@@ -298,7 +298,7 @@ export class VscodeHost implements Host {
   }
 
   extensionKeybindings(): Array<{ command: string; key?: string; mac?: string }> {
-    const ext = vscode.extensions.getExtension("kilocode.kilo-code")
+    const ext = vscode.extensions.getExtension("kilocode.fox-code")
     return ext?.packageJSON?.contributes?.keybindings ?? []
   }
 

@@ -1,0 +1,23 @@
+{
+  "name": "@opencode-ai/tui",
+  "version": "7.4.22",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./util/record": "./src/util/record.ts",
+    "./util/locale": "./src/util/locale.ts",
+    "./util/error": "./src/util/error.ts",
+    "./config": "./src/config/index.ts",
+    "./config/keybind": "./src/config/keybind.ts",
+    "./context/theme": "./src/context/theme.ts",
+    "./context/exit": "./src/context/exit.ts",
+    "./plugin/slots": "./src/plugin/slots.ts",
+    "./plugin/command-shim": "./src/plugin/command-shim.ts",
+    "./plugin/runtime": "./src/plugin/runtime.ts",
+    "./builtins": "./src/builtins.ts"
+  },
+  "scripts": {
+    "typecheck": "tsgo --noEmit"
+  }
+}

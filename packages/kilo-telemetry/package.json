@@ -1,0 +1,12 @@
+{
+  "name": "@kilocode/kilo-telemetry",
+  "version": "7.4.22",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsgo --noEmit"
+  }
+}

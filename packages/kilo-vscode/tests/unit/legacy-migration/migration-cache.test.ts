@@ -18,7 +18,7 @@ const legacy = {
 function makeContext(cache: MigrationCache): MigrationContext {
   return {
     client: null,
-    extensionContext: { globalStorageUri: { fsPath: "/storage/kilocode.kilo-code" } },
+    extensionContext: { globalStorageUri: { fsPath: "/storage/kilocode.fox-code" } },
     postMessage: () => {},
     refreshSessions: () => {},
     migrationCache: cache,

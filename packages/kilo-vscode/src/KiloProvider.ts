@@ -316,7 +316,7 @@ type ContextRequestMessage =
   | { type: "requestTerminalContext"; requestId: string; sessionID?: string }
 
 export class KiloProvider implements vscode.WebviewViewProvider {
-  public static readonly viewType = "kilo-code.SidebarProvider"
+  public static readonly viewType = "fox-code.SidebarProvider"
   private readonly instanceId = crypto.randomUUID()
 
   private webview: vscode.Webview | null = null
@@ -328,7 +328,7 @@ export class KiloProvider implements vscode.WebviewViewProvider {
   private loginAttempt = 0
   private isWebviewReady = false
   private readonly extensionVersion =
-    vscode.extensions.getExtension("kilocode.kilo-code")?.packageJSON?.version ?? "unknown"
+    vscode.extensions.getExtension("kilocode.fox-code")?.packageJSON?.version ?? "unknown"
   private cachedProvidersMessage: unknown = null
   /**
    * Provider API keys retained extension-side for authenticated model
@@ -596,10 +596,10 @@ export class KiloProvider implements vscode.WebviewViewProvider {
 
   private openMarketplacePanel(directory: unknown): void {
     if (typeof directory === "string" && directory) {
-      vscode.commands.executeCommand("kilo-code.new.marketplaceButtonClicked", directory)
+      vscode.commands.executeCommand("fox-code.new.marketplaceButtonClicked", directory)
       return
     }
-    vscode.commands.executeCommand("kilo-code.new.marketplaceButtonClicked", this.projectDirectory)
+    vscode.commands.executeCommand("fox-code.new.marketplaceButtonClicked", this.projectDirectory)
   }
 
   // Strip metadata unused by the webview to keep session switches fast.
@@ -667,7 +667,7 @@ export class KiloProvider implements vscode.WebviewViewProvider {
 
     // Re-send ready so the webview can recover after refresh.
     if (serverInfo) {
-      const langConfig = vscode.workspace.getConfiguration("kilo-code.new")
+      const langConfig = vscode.workspace.getConfiguration("fox-code.new")
       this.postMessage({
         type: "ready",
         serverInfo,
@@ -755,7 +755,7 @@ export class KiloProvider implements vscode.WebviewViewProvider {
 
   private setSidebarVisible(visible: boolean): void {
     this.setStreamVisibility(visible)
-    vscode.commands.executeCommand("setContext", "kilo-code.new.sidebarVisible", visible)
+    vscode.commands.executeCommand("setContext", "fox-code.new.sidebarVisible", visible)
     if (!visible && this.opts.focusContext) {
       void vscode.commands.executeCommand("setContext", this.opts.focusContext, false)
     }
@@ -1038,15 +1038,15 @@ export class KiloProvider implements vscode.WebviewViewProvider {
       if (
         await handleSidebarWorktreeMessage(message, {
           post: (msg) => this.postMessage(msg),
-          openAgentManager: () => vscode.commands.executeCommand("kilo-code.new.agentManagerOpen"),
-          openAdvancedWorktree: () => vscode.commands.executeCommand("kilo-code.new.agentManager.advancedWorktree"),
+          openAgentManager: () => vscode.commands.executeCommand("fox-code.new.agentManagerOpen"),
+          openAdvancedWorktree: () => vscode.commands.executeCommand("fox-code.new.agentManager.advancedWorktree"),
           openChanges: (sessionId?: string, turnId?: string) =>
-            vscode.commands.executeCommand("kilo-code.new.showChanges", {
+            vscode.commands.executeCommand("fox-code.new.showChanges", {
               sessionId,
               turnId,
               directory: sessionId ? this.sessionGitDirectories.get(sessionId) : undefined,
             }),
-          openProfile: () => vscode.commands.executeCommand("kilo-code.new.profileButtonClicked"),
+          openProfile: () => vscode.commands.executeCommand("fox-code.new.profileButtonClicked"),
           currentSessionId: this.currentSession?.id,
           createWorktree: async (baseBranch, branchName) => {
             await this.createWorktreeHandler?.(baseBranch, branchName)
@@ -1183,10 +1183,10 @@ export class KiloProvider implements vscode.WebviewViewProvider {
           await handleRefreshProfile(this.authCtx)
           break
         case "openSettingsPanel":
-          vscode.commands.executeCommand("kilo-code.new.settingsButtonClicked", message.tab)
+          vscode.commands.executeCommand("fox-code.new.settingsButtonClicked", message.tab)
           break
         case "openKiloClaw":
-          vscode.commands.executeCommand("kilo-code.new.kiloClawOpen")
+          vscode.commands.executeCommand("fox-code.new.kiloClawOpen")
           break
         case "openVSCodeSettings":
           vscode.commands.executeCommand("workbench.action.openSettings", message.query)
@@ -1212,7 +1212,7 @@ export class KiloProvider implements vscode.WebviewViewProvider {
           this.handleReload().catch((e) => console.error("[Kilo New] KiloProvider: Reload failed:", e))
           break
         case "openSubAgentViewer":
-          vscode.commands.executeCommand("kilo-code.new.openSubAgentViewer", message.sessionID, message.title)
+          vscode.commands.executeCommand("fox-code.new.openSubAgentViewer", message.sessionID, message.title)
           break
         case "saveImage":
           return saveImage(this.getWorkspaceDirectory(this.currentSession?.id), message)
@@ -1371,12 +1371,12 @@ export class KiloProvider implements vscode.WebviewViewProvider {
           break
         case "openSettingsTab":
           if (message.tab === "indexing") {
-            await vscode.commands.executeCommand("kilo-code.new.openIndexingSettings")
+            await vscode.commands.executeCommand("fox-code.new.openIndexingSettings")
           }
           break
         case "setLanguage":
           await vscode.workspace
-            .getConfiguration("kilo-code.new")
+            .getConfiguration("fox-code.new")
             .update("language", message.locale || undefined, vscode.ConfigurationTarget.Global)
           this.connectionService.notifyLanguageChanged(message.locale as string)
           break
@@ -1789,7 +1789,7 @@ export class KiloProvider implements vscode.WebviewViewProvider {
       this.connectionState = this.connectionService.getConnectionState()
 
       if (serverInfo) {
-        const langConfig = vscode.workspace.getConfiguration("kilo-code.new")
+        const langConfig = vscode.workspace.getConfiguration("fox-code.new")
         this.postMessage({
           type: "ready",
           serverInfo,
@@ -2373,7 +2373,7 @@ export class KiloProvider implements vscode.WebviewViewProvider {
             continue
           }
           this.storedProviderKeys = storedKeys
-          const settings = vscode.workspace.getConfiguration("kilo-code.new.model")
+          const settings = vscode.workspace.getConfiguration("fox-code.new.model")
           const message = {
             type: "providersLoaded",
             providers: indexProvidersById(response.all),
@@ -2831,7 +2831,7 @@ export class KiloProvider implements vscode.WebviewViewProvider {
 
   /** Read attention settings from VS Code config and push to webview. */
   private sendNotificationSettings(): void {
-    const attention = vscode.workspace.getConfiguration("kilo-code.new.attention")
+    const attention = vscode.workspace.getConfiguration("fox-code.new.attention")
     this.postMessage({
       type: "notificationSettingsLoaded",
       settings: {
@@ -2842,7 +2842,7 @@ export class KiloProvider implements vscode.WebviewViewProvider {
   }
 
   private sendTimelineSetting(): void {
-    const config = vscode.workspace.getConfiguration("kilo-code.new")
+    const config = vscode.workspace.getConfiguration("fox-code.new")
     this.postMessage({
       type: "timelineSettingLoaded",
       visible: config.get<boolean>("showTaskTimeline", true),
@@ -3421,15 +3421,15 @@ export class KiloProvider implements vscode.WebviewViewProvider {
   }
 
   private maxCostSetting(): number {
-    return this.setMaxCost(vscode.workspace.getConfiguration("kilo-code.new").get<number>("maxCost", 0))
+    return this.setMaxCost(vscode.workspace.getConfiguration("fox-code.new").get<number>("maxCost", 0))
   }
 
   private commitMessageLanguageSetting(): string {
-    return vscode.workspace.getConfiguration("kilo-code.new").get<string>("languageCommitMessage", "sync")
+    return vscode.workspace.getConfiguration("fox-code.new").get<string>("languageCommitMessage", "sync")
   }
 
   private multiProjectSetting(): boolean {
-    return vscode.workspace.getConfiguration("kilo-code.new.experimental").get<boolean>("multiProject", false)
+    return vscode.workspace.getConfiguration("fox-code.new.experimental").get<boolean>("multiProject", false)
   }
 
   private async sendIndexingSettings(projectId?: string) {
@@ -4006,13 +4006,13 @@ export class KiloProvider implements vscode.WebviewViewProvider {
 
   /**
    * Handle a generic setting update from the webview.
-   * The key uses dot notation relative to `kilo-code.new` (e.g. "browserAutomation.enabled").
+   * The key uses dot notation relative to `fox-code.new` (e.g. "browserAutomation.enabled").
    */
   private async handleUpdateSetting(key: string, value: unknown): Promise<void> {
     if (key === "maxCost") {
       const normalized = this.setMaxCost(value)
       await vscode.workspace
-        .getConfiguration("kilo-code.new")
+        .getConfiguration("fox-code.new")
         .update("maxCost", normalized, vscode.ConfigurationTarget.Global)
       for (const sid of this.trackedSessionIds) {
         const oldLimit = this.activeAlerts.get(sid)
@@ -4029,7 +4029,7 @@ export class KiloProvider implements vscode.WebviewViewProvider {
     if (section === "autocomplete" && !validAutocompleteSetting(leaf, value)) return
     if (section === "indexing" && !validIndexingSetting(leaf, value)) return
     if (section === "chat" && !validChatSetting(leaf, value)) return
-    const config = vscode.workspace.getConfiguration(`kilo-code.new${section ? `.${section}` : ""}`)
+    const config = vscode.workspace.getConfiguration(`fox-code.new${section ? `.${section}` : ""}`)
     // Normalize a webview-side clear to `undefined` so VS Code removes the
     // key from settings.json rather than persisting a literal `null`. This
     // lets the runtime fall back to the resolved default.
@@ -4039,11 +4039,11 @@ export class KiloProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Reset all "kilo-code.new.*" extension settings to their defaults by reading
+   * Reset all "fox-code.new.*" extension settings to their defaults by reading
    * contributes.configuration from the extension's package.json at runtime.
-   * Only resets settings under the "kilo-code.new." namespace to avoid touching
+   * Only resets settings under the "fox-code.new." namespace to avoid touching
    * settings from the previous version of the extension which shares the same
-   * extension ID and "kilo-code.*" namespace.
+   * extension ID and "fox-code.*" namespace.
    */
   private async handleResetAllSettings(): Promise<void> {
     const confirmed = await vscode.window.showWarningMessage(
@@ -4053,8 +4053,8 @@ export class KiloProvider implements vscode.WebviewViewProvider {
     )
     if (confirmed !== "Reset") return
 
-    const prefix = "kilo-code.new."
-    const ext = vscode.extensions.getExtension("kilocode.kilo-code")
+    const prefix = "fox-code.new."
+    const ext = vscode.extensions.getExtension("kilocode.fox-code")
     const properties = ext?.packageJSON?.contributes?.configuration?.properties as Record<string, unknown> | undefined
     if (!properties) return
 
@@ -4101,7 +4101,7 @@ export class KiloProvider implements vscode.WebviewViewProvider {
    * Read the current browser automation settings and push them to the webview.
    */
   private sendBrowserSettings(): void {
-    const config = vscode.workspace.getConfiguration("kilo-code.new.browserAutomation")
+    const config = vscode.workspace.getConfiguration("fox-code.new.browserAutomation")
     this.postMessage({
       type: "browserSettingsLoaded",
       settings: {
@@ -4116,7 +4116,7 @@ export class KiloProvider implements vscode.WebviewViewProvider {
    * Read the current Claude Code compatibility setting and push it to the webview.
    */
   private sendClaudeCompatSetting(): void {
-    const enabled = vscode.workspace.getConfiguration("kilo-code.new").get<boolean>("claudeCodeCompat", false)
+    const enabled = vscode.workspace.getConfiguration("fox-code.new").get<boolean>("claudeCodeCompat", false)
     this.postMessage({
       type: "claudeCompatSettingLoaded",
       enabled: enabled ?? false,
