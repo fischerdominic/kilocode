@@ -102,16 +102,10 @@ function smokeEnv(root: string) {
 }
 
 async function smokeModels(binaryPath: string) {
-  const root = await fs.promises.mkdtemp(path.join(os.tmpdir(), "kilo-models-"))
-  try {
-    const out = await $`${binaryPath} --pure models anthropic`.env(smokeEnv(root)).text()
-    if (out.split(/\r?\n/).some((line) => line.startsWith("anthropic/"))) return
-    throw new Error("Compiled binary did not list Anthropic models from the embedded snapshot")
-  } finally {
-    await fs.promises
-      .rm(root, { recursive: true, force: true })
-      .catch((err) => console.warn(`Failed to remove smoke test directory ${root}`, err))
-  }
+  // kilocode_change - models command removed; smoke test now just verifies binary runs
+  const out = await $`${binaryPath} --version`.env(smokeEnv(await fs.promises.mkdtemp(path.join(os.tmpdir(), "kilo-smoke-")))).text()
+  if (out.trim()) return
+  throw new Error("Compiled binary did not respond to --version")
 }
 
 // Kilo dropped the packages/app web UI. Kept here as a commented reference so future upstream merges
@@ -264,7 +258,6 @@ for (const item of targets) {
       : undefined
   // kilocode_change end
 
-  const workerPath = "./src/cli/tui/worker.ts"
   const treeSitterWorkerPath = "opentui-tree-sitter-worker.js"
   // kilocode_change start
   const sessionExportWorkerPath = "./src/kilocode/session-export/worker.ts"
@@ -306,14 +299,13 @@ for (const item of targets) {
     },
     // kilocode_change start - packages/app was removed; no embedded web UI
     files: { [treeSitterWorkerPath]: treeSitterWorker },
-    entrypoints: ["./src/index.ts", workerPath, treeSitterWorkerPath, sessionExportWorkerPath, indexingWorkerPath],
+    entrypoints: ["./src/index.ts", treeSitterWorkerPath, sessionExportWorkerPath, indexingWorkerPath],
     // kilocode_change end
     define: {
       FFF_LIBC: JSON.stringify(item.abi === "musl" ? "musl" : "gnu"),
       KILO_VERSION: `'${Script.version}'`,
       KILO_MODELS_DEV: generated.modelsData,
       OTUI_TREE_SITTER_WORKER_PATH: bunfsRoot + treeSitterWorkerPath,
-      KILO_WORKER_PATH: workerPath,
       // kilocode_change start
       KILO_SESSION_EXPORT_WORKER_PATH: sessionExportWorkerPath,
       KILO_INDEXING_WORKER_PATH: indexingWorkerPath,

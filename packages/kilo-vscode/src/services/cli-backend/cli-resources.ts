@@ -31,7 +31,8 @@ export function resolveTreeSitterEnv(root: string): Record<string, string> {
 }
 
 export function hasTreeSitterResources(file: string): boolean {
-  return fs.existsSync(path.join(treeSitterDirForBinary(file), runtime))
+  const dirPath = treeSitterDirForBinary(file)
+  return fs.existsSync(dirPath) && fs.readdirSync(dirPath).some((f) => f.endsWith(".wasm"))
 }
 
 export function kiloSandboxWorkerForBinary(file: string): string {
@@ -47,7 +48,8 @@ export async function copyTreeSitterResources(source: string, target: string): P
   const from = treeSitterDirForBinary(source)
   const to = treeSitterDirForBinary(target)
 
-  if (!fs.existsSync(path.join(from, runtime))) {
+  const hasWasm = fs.existsSync(from) && fs.readdirSync(from).some((f) => f.endsWith(".wasm"))
+  if (!hasWasm) {
     throw new Error(`CLI tree-sitter resources not found at ${from}`)
   }
 

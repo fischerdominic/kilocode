@@ -1,6 +1,7 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { ServeCommand } from "./cli/cmd/serve"
+import { GenerateCommand } from "./cli/cmd/generate"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { ensureProcessMetadata } from "@opencode-ai/core/util/opencode-process" // kilocode_change
 import { KiloCli } from "@/kilocode/cli/setup" // kilocode_change
@@ -59,6 +60,7 @@ let cli = yargs(args) // kilocode_change
   .usage("")
   .completion("completion", "generate shell completion script")
   .command(ServeCommand)
+  .command(GenerateCommand)
 
 // kilocode_change start - register Kilo-specific commands after the upstream chain
 cli = KiloCli.register(cli)
