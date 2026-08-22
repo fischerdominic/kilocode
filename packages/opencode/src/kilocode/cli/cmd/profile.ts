@@ -89,22 +89,22 @@ export async function handle(args: Args) {
   const org = auth.accountId ?? null
   const defaultProfile = { name: null, email: auth.type === "oauth" ? "user@example.com" : "", organizations: [] }
   const defaultBalance = { balance: 0 }
-  const result = await (async () => {
+  const fetchResult = await (async () => {
     try {
-      return [
-        (args.getProfile ?? async () => defaultProfile)(auth.access),
-        (args.getBalance ?? async () => defaultBalance)(auth.access, org ?? undefined),
-      ] as const
+      const [profile, balance] = await Promise.all([
+        (args.getProfile ?? (async () => defaultProfile))(auth.access),
+        (args.getBalance ?? (async () => defaultBalance))(auth.access, org ?? undefined),
+      ])
+      return { profile, balance }
     } catch (err) {
       error(err instanceof Error ? err.message : String(err))
       exit(1)
       return undefined
     }
   })()
-  if (!result) return
+  if (!fetchResult) return
 
-  const [profile, balance] = result
-  const info = payload({ profile, balance, organizationId: org })
+  const info = payload({ ...fetchResult, organizationId: org })
 
   if (args.json) {
     console.log(JSON.stringify(info, null, 2))

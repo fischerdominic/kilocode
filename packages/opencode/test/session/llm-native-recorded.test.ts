@@ -94,7 +94,6 @@ const providerConfig = (input: {
   readonly providerID: ProviderV2.ID
   readonly name: string
   readonly env: string[]
-  readonly npm: string
   readonly api: string
   readonly model: ModelsDev.Provider["models"][string]
   readonly options: Record<string, unknown>
@@ -104,7 +103,6 @@ const providerConfig = (input: {
     [input.providerID]: {
       name: input.name,
       env: input.env,
-      npm: input.npm,
       api: input.api,
       models: { [input.model.id]: cloneModel(input.model) },
       options: input.options,
@@ -127,7 +125,6 @@ const RECORDED_SCENARIOS = [
         providerID: ProviderV2.ID.openai,
         name: "OpenAI",
         env: ["OPENAI_API_KEY"],
-        npm: "@ai-sdk/openai",
         api: "https://api.openai.com/v1",
         model,
         options: {
@@ -153,7 +150,6 @@ const RECORDED_SCENARIOS = [
         providerID: ProviderV2.ID.openai,
         name: "OpenAI",
         env: ["OPENAI_API_KEY"],
-        npm: "@ai-sdk/openai",
         api: "https://api.openai.com/v1",
         model,
         options: { baseURL: "https://api.openai.com/v1" },
@@ -173,7 +169,6 @@ const RECORDED_SCENARIOS = [
         providerID: ProviderV2.ID.opencode,
         name: "OpenCode Zen",
         env: ["KILO_CONSOLE_TOKEN"],
-        npm: "@ai-sdk/openai-compatible",
         api: zenURL(process.env.KILO_RECORD_ZEN_CONNECTION ?? "fixture"),
         model,
         options: {
@@ -196,7 +191,6 @@ const RECORDED_SCENARIOS = [
         providerID: ProviderV2.ID.anthropic,
         name: "Anthropic",
         env: ["ANTHROPIC_API_KEY"],
-        npm: "@ai-sdk/anthropic",
         api: "https://api.anthropic.com/v1",
         model,
         options: {

@@ -15,7 +15,7 @@ import { VSCodeProvider } from "../context/vscode"
 import { ServerProvider } from "../context/server"
 import { FeedbackProvider } from "../context/feedback"
 import { ProviderContext } from "../context/provider"
-import { flattenModels, findModel as _findModel } from "../context/provider-utils"
+import { findModel as _findModel } from "../context/provider-utils"
 import { ConfigProvider, ConfigContext } from "../context/config"
 import { DisplayProvider } from "../context/display"
 import { DataProvider, type OpenDiffFn, type OpenFileFn } from "@kilocode/kilo-ui/context/data"
@@ -98,7 +98,22 @@ const MOCK_PROVIDERS = {
   },
 }
 
-const MOCK_MODELS = flattenModels(MOCK_PROVIDERS as any)
+const MOCK_MODELS = (() => {
+  const result: Array<any> = []
+  const providers = MOCK_PROVIDERS as Record<string, { id: string; name: string; models: Record<string, unknown> }>
+  for (const providerID of Object.keys(providers)) {
+    const provider = providers[providerID]
+    for (const modelID of Object.keys(provider.models)) {
+      result.push({
+        ...provider.models[modelID]!,
+        id: modelID,
+        providerID,
+        providerName: provider.name,
+      })
+    }
+  }
+  return result
+})()
 
 /** A synchronous mock ProviderContext — provides models without waiting for a postMessage round-trip. */
 const MockProviderProvider: ParentComponent<{ kiloAuth?: boolean; training?: boolean }> = (props) => {

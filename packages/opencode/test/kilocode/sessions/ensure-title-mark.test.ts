@@ -226,9 +226,7 @@ function providerCfg(url: string): Partial<ConfigV1.Info> {
     provider: {
       test: {
         name: "Test",
-        id: "test",
         env: [],
-        npm: "@ai-sdk/openai-compatible",
         models: {
           "test-model": {
             id: "test-model",

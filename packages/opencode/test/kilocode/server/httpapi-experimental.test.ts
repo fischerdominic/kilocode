@@ -58,7 +58,6 @@ describe("Kilo experimental HttpApi", () => {
         lsp: false,
         provider: {
           "test-provider": {
-            npm: "@ai-sdk/openai-compatible",
             env: [],
             models: {
               "routed-model": {

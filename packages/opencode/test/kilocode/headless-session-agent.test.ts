@@ -21,7 +21,6 @@ test("headless prompts preserve the agent selected when the session was created"
       },
       provider: {
         mock: {
-          npm: "@ai-sdk/openai-compatible",
           name: "Mock",
           options: { baseURL: "http://127.0.0.1:1/v1", apiKey: "test" },
           models: {

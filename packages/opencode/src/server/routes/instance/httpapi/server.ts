@@ -336,7 +336,7 @@ export function createRoutes(
     // so Observability must come after every service graph. Otherwise eagerly forked
     // fibers capture Effect's default stdout logger and corrupt the TUI (#34730).
     Layer.provideMerge(Observability.layer),
-  )
+  ) as any
 }
 
 // kilocode_change start - keep listener routes local while application services come from AppRuntime

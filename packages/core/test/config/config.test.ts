@@ -87,28 +87,24 @@ describe("Config", () => {
     }),
   )
 
-  it.effect("migrates v1 provider setup options into AISDK settings", () =>
+  it.effect("migrates v1 provider setup options", () =>
     Effect.sync(() => {
       const migrated = ConfigMigrateV1.migrate({
         provider: {
-          bedrock: {
-            npm: "@ai-sdk/amazon-bedrock",
+          myprovider: {
+            api: "https://example.com/v1",
             options: {
               headers: { "x-test": "1" },
               body: { trace: true },
-              region: "us-east-1",
-              profile: "dev",
             },
           },
         },
       })
 
-      expect(migrated.providers?.bedrock?.api).toEqual({
-        type: "aisdk",
-        package: "@ai-sdk/amazon-bedrock",
-        settings: { region: "us-east-1", profile: "dev" },
+      expect(migrated.providers?.myprovider?.api).toEqual({
+        url: "https://example.com/v1",
       })
-      expect(migrated.providers?.bedrock?.request).toEqual({
+      expect(migrated.providers?.myprovider?.request).toEqual({
         headers: { "x-test": "1" },
         body: { trace: true },
       })

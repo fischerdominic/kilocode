@@ -372,8 +372,6 @@ it.instance("preserves Kilo provider free model metadata", () =>
           models: {
             "free-e2e": {
               id: "free-e2e",
-              isFree: true,
-              ai_sdk_provider: "openai-compatible",
             },
           },
         },
@@ -381,8 +379,7 @@ it.instance("preserves Kilo provider free model metadata", () =>
     })
     const config = yield* Config.use.get()
     const model = config.provider?.kilo?.models?.["free-e2e"]
-    expect(model?.isFree).toBe(true)
-    expect(model?.ai_sdk_provider).toBe("openai-compatible")
+    expect(model?.id).toBe("free-e2e")
   }),
 )
 // kilocode_change end

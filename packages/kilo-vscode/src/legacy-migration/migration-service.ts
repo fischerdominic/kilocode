@@ -14,8 +14,6 @@ import type {
   PermissionConfig,
   PermissionObjectConfig,
 } from "@kilocode/sdk/v2/client"
-import { PROVIDER_MAP, UNSUPPORTED_PROVIDERS, DEFAULT_MODE_SLUGS } from "./provider-mapping"
-import type { ProviderMapping } from "./provider-mapping"
 import { NATIVE_MODE_DEFAULTS } from "./native-mode-defaults"
 import { getMigrationErrorMessage } from "./errors/migration-error"
 import type {
@@ -399,142 +397,25 @@ async function migrateProvider(
     return { item: profileName, category: "provider", status: "error", message: "No provider type found" }
   }
 
-  if (UNSUPPORTED_PROVIDERS.has(provider)) {
-    return {
-      item: profileName,
-      category: "provider",
-      status: "warning",
-      message: `Provider "${provider}" is not supported in the new version`,
-    }
-  }
-
-  const mapping = PROVIDER_MAP[provider]
-  if (!mapping) {
-    return {
-      item: profileName,
-      category: "provider",
-      status: "warning",
-      message: `Unknown provider "${provider}"`,
-    }
-  }
-
-  // OAuth providers store credentials in a separate VS Code secret
-  if (mapping.oauthSecretKey) {
-    const creds = await readOAuthCredentials(context, mapping.oauthSecretKey)
-    if (!creds) {
-      return { item: profileName, category: "provider", status: "warning", message: "No OAuth credentials found" }
-    }
-    await client.auth.set({ providerID: mapping.id, auth: { type: "oauth" as const, ...creds } })
-    return { item: profileName, category: "provider", status: "success" }
-  }
-
-  // Providers that use env/ADC-based auth (e.g. Vertex AI) — skip auth.set, only migrate config options
-  if (mapping.skipAuth) {
-    await migrateConfigFields(mapping, settings, client)
-    // Warn users who had inline service account credentials — the CLI uses ADC only
-    const hadCredentials = Boolean(settings.vertexJsonCredentials ?? settings.vertexKeyFile)
-    return {
-      item: profileName,
-      category: "provider",
-      status: hadCredentials ? "warning" : "success",
-      message: hadCredentials
-        ? "Project and location migrated. The new CLI uses Application Default Credentials — set GOOGLE_APPLICATION_CREDENTIALS or run 'gcloud auth application-default login'"
-        : undefined,
-    }
-  }
-
-  const apiKey = settings[mapping.key] as string | undefined
-  if (!apiKey) {
-    return { item: profileName, category: "provider", status: "warning", message: "No API key found in profile" }
-  }
-
-  // The profile endpoint requires type:"oauth". The legacy extension stored the same Kilo
-  // API token — write it in the OAuth format the new extension expects (matching device-auth:
-  // access + refresh + 1-year expiry).
-  if (mapping.id === "kilo") {
-    const org = mapping.organizationIdField ? (settings[mapping.organizationIdField] as string | undefined) : undefined
-    await client.auth.set({
-      providerID: "kilo",
-      auth: {
-        type: "oauth" as const,
-        access: apiKey,
-        refresh: apiKey,
-        expires: Date.now() + 365 * 24 * 60 * 60 * 1000,
-        accountId: org,
-      },
-    })
-    return { item: profileName, category: "provider", status: "success" }
-  }
-
-  // For providers that support an organization ID (e.g. Kilo Gateway), migrate using OAuth
-  // auth so the CLI can read accountId for org-scoped API requests.
-  const organizationId = mapping.organizationIdField
-    ? (settings[mapping.organizationIdField] as string | undefined)
-    : undefined
-
-  const auth = organizationId
-    ? { type: "oauth" as const, access: apiKey, refresh: "", expires: 0, accountId: organizationId }
-    : { type: "api" as const, key: apiKey }
-
-  await client.auth.set({ providerID: mapping.id, auth })
-
-  // If a custom base URL is configured, also persist it to the backend config
-  if (mapping.urlField) {
-    const url = settings[mapping.urlField] as string | undefined
-    if (url) {
-      await client.global.config.update({
-        config: { provider: { [mapping.id]: { options: { apiKey, baseURL: url } } } },
-      })
-    }
-  }
-
-  await migrateConfigFields(mapping, settings, client)
-
-  return { item: profileName, category: "provider", status: "success" }
-}
-
-async function migrateConfigFields(
-  mapping: ProviderMapping,
-  settings: LegacyProviderSettings,
-  client: KiloClient,
-): Promise<void> {
-  if (!mapping.configFields?.length) return
-  const opts: Record<string, string> = {}
-  for (const { from, option } of mapping.configFields) {
-    const val = settings[from] as string | undefined
-    if (val) opts[option] = val
-  }
-  if (Object.keys(opts).length > 0) {
-    await client.global.config.update({
-      config: { provider: { [mapping.id]: { options: opts } } },
-    })
+  // Provider migration is no longer supported — built-in providers have been removed.
+  // Users must manually configure their providers in the new extension.
+  return {
+    item: profileName,
+    category: "provider",
+    status: "warning",
+    message: `Provider "${provider}" must be manually configured in the new extension`,
   }
 }
 
 async function migrateDefaultModel(settings: LegacyProviderSettings, client: KiloClient): Promise<MigrationResultItem> {
-  const provider = settings.apiProvider
-  if (!provider) {
-    return { item: "Default model", category: "defaultModel", status: "error", message: "No provider type found" }
+  // Default model migration is no longer supported — providers have been removed.
+  // Users must manually configure their model selection in the new extension.
+  return {
+    item: "Default model",
+    category: "defaultModel",
+    status: "warning",
+    message: "Default model must be manually configured in the new extension",
   }
-
-  const mapping = PROVIDER_MAP[provider]
-  if (!mapping) {
-    return {
-      item: "Default model",
-      category: "defaultModel",
-      status: "warning",
-      message: `Provider "${provider}" is not supported in the new version`,
-    }
-  }
-
-  const modelField = mapping.modelField ?? "apiModelId"
-  const modelId = settings[modelField] as string | undefined
-  if (!modelId) {
-    return { item: "Default model", category: "defaultModel", status: "warning", message: "No model ID found" }
-  }
-
-  await client.global.config.update({ config: { model: `${mapping.id}/${modelId}` } })
-  return { item: "Default model", category: "defaultModel", status: "success" }
 }
 
 // ---------------------------------------------------------------------------
@@ -1128,27 +1009,17 @@ function buildProviderList(
 
   return Object.entries(profiles.apiConfigs).map(([profileName, settings]) => {
     const provider = settings.apiProvider ?? "unknown"
-    const mapping = PROVIDER_MAP[provider]
-    const unsupported = UNSUPPORTED_PROVIDERS.has(provider)
-
-    const modelField = mapping?.modelField ?? "apiModelId"
+    const modelField = "apiModelId"
     const model = settings[modelField] as string | undefined
 
-    const hasApiKey = mapping?.oauthSecretKey
-      ? oauthProviders.has(provider)
-      : mapping?.skipAuth
-        ? (mapping.configFields?.some((f) => Boolean(settings[f.from])) ?? false)
-        : mapping
-          ? Boolean(settings[mapping.key])
-          : false
-
+    // Provider migration is no longer supported — all providers are unsupported
     return {
       profileName,
       provider,
       model,
-      hasApiKey,
-      supported: Boolean(mapping) && !unsupported,
-      newProviderName: mapping?.name,
+      hasApiKey: false,
+      supported: false,
+      newProviderName: undefined,
     }
   })
 }
@@ -1171,15 +1042,16 @@ export function buildCustomModeList(
 
   // Non-native custom modes (existing behavior)
   if (modes) {
+    const nativeSlugs = new Set(Object.keys(NATIVE_MODE_DEFAULTS))
     for (const m of modes) {
-      if (!DEFAULT_MODE_SLUGS.has(m.slug)) {
+      if (!nativeSlugs.has(m.slug)) {
         result.push({ name: m.name, slug: m.slug })
       }
     }
   }
 
   // Modified native modes — detect user modifications and offer migration under a new slug
-  for (const slug of DEFAULT_MODE_SLUGS) {
+  for (const slug of Object.keys(NATIVE_MODE_DEFAULTS)) {
     const defaults = NATIVE_MODE_DEFAULTS[slug]
     if (!defaults) continue // "build" has no legacy defaults
 
@@ -1261,13 +1133,6 @@ function resolveDefaultModel(
   if (!profiles?.currentApiConfigName) return undefined
   const active = profiles.apiConfigs[profiles.currentApiConfigName]
   if (!active?.apiProvider) return undefined
-  const mapping = PROVIDER_MAP[active.apiProvider]
-  if (!mapping) return undefined
-  // If the active profile requires OAuth credentials (e.g. openai-codex) but they are
-  // unavailable, do not offer default-model migration — it would write a broken reference.
-  if (mapping.oauthSecretKey && !oauthProviders.has(active.apiProvider)) return undefined
-  const modelField = mapping.modelField ?? "apiModelId"
-  const model = active[modelField] as string | undefined
-  if (!model) return undefined
-  return { provider: mapping.name, model }
+  // Provider migration is no longer supported — built-in providers have been removed.
+  return undefined
 }

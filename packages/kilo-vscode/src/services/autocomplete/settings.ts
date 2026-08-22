@@ -46,11 +46,13 @@ export function validAutocompleteSetting(key: string, value: unknown) {
   if (key === "model") {
     // Allow clearing back to the server-side default.
     if (value === null || value === undefined) return true
+    if (typeof value !== "string") return false
     return validAutocompleteModel(value)
   }
 
   if (key === "provider") {
     if (value === null || value === undefined) return true
+    if (typeof value !== "string") return false
     return validAutocompleteProvider(value)
   }
 

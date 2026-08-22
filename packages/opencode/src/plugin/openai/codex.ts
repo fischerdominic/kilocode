@@ -475,7 +475,7 @@ export async function CodexAuthPlugin(input: PluginInput, options: CodexAuthPlug
             if (!currentAuth.access || currentAuth.expires < Date.now()) {
               if (!refreshPromise) {
                 log.info("refreshing codex access token")
-                refreshPromise = refreshAccessToken(currentAuth.refresh, new AbortController().signal)
+                refreshPromise = refreshAccessToken(currentAuth.refresh, ISSUER, new AbortController().signal)
                   .then((tokens) => ({
                     access: tokens.access_token,
                     accountId: extractAccountId(tokens),

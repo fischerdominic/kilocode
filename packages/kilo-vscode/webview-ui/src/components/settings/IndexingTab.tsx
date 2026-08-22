@@ -14,7 +14,6 @@ import { useProvider } from "../../context/provider"
 import { useServer } from "../../context/server"
 import { useVSCode } from "../../context/vscode"
 import type { IndexingConfig, IndexingProvider as ProviderId } from "../../types/messages"
-import { KILO_PROVIDER_ID } from "../../../../src/shared/provider-model"
 import SettingsRow from "./SettingsRow"
 import {
   indexingConfig,
@@ -220,12 +219,9 @@ const IndexingTab: Component = () => {
   const knownKiloModel = (model: string | null | undefined) =>
     getKiloEmbeddingModel(model ?? undefined, embeds.catalog())?.id
   const kiloValue = () => knownKiloModel(cfg().model) ?? kiloDefault()
-  const kiloAvailable = () => !!server.profileData() || provider.authStates()[KILO_PROVIDER_ID] !== undefined
-  const selectedProvider = () => cfg().provider ?? (kiloAvailable() ? "kilo" : undefined)
+  const selectedProvider = () => cfg().provider
   const staleKiloModel = () => selectedProvider() === "kilo" && !!cfg().model && !knownKiloModel(cfg().model)
-  const providers = createMemo(() =>
-    allProviders.filter((item) => item.value !== "kilo" || kiloAvailable() || selectedProvider() === "kilo"),
-  )
+  const providers = createMemo(() => allProviders)
   const fields = createMemo(() => providerFields(selectedProvider()))
 
   const saveProvider = (next: ProviderId | undefined) => {
@@ -248,7 +244,7 @@ const IndexingTab: Component = () => {
   }
 
   const saveEnabled = (next: boolean) => {
-    if (next && !cfg().provider && kiloAvailable()) {
+    if (next && !cfg().provider) {
       updateIndexing({
         enabled: next,
         provider: "kilo",
@@ -463,7 +459,7 @@ const IndexingTab: Component = () => {
               : description(language.t("settings.indexing.dimension.description"), [["dimension"]])
           }
           tag={() => (selectedProvider() === "kilo" ? undefined : tag(scope(), [["dimension"]]))}
-          last={!selectedProvider() || (fields().length === 0 && !(selectedProvider() === "kilo" && !kiloAvailable()))}
+          last={!selectedProvider() || fields().length === 0}
         >
           <TextField
             value={
@@ -478,15 +474,6 @@ const IndexingTab: Component = () => {
             onChange={(value) => saveNumber("dimension", value, { integer: true, min: 1 })}
           />
         </SettingsRow>
-        <Show when={selectedProvider() === "kilo" && !kiloAvailable()}>
-          <SettingsRow
-            title={language.t("settings.indexing.kiloSignIn.title")}
-            description={language.t("settings.indexing.kiloSignIn.description")}
-            last
-          >
-            <span />
-          </SettingsRow>
-        </Show>
         <Show when={fields().length > 0 ? selectedProvider() : undefined} keyed>
           {(group) => {
             const fields = providerFields(group)

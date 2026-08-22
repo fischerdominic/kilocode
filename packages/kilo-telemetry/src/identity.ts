@@ -1,7 +1,6 @@
 import * as path from "path"
 import { createHash } from "crypto"
 import { writeFile, chmod, rename, rm } from "fs/promises"
-import { fetchProfile } from "@kilocode/kilo-gateway"
 
 export namespace Identity {
   let machineId: string | null = null
@@ -102,9 +101,10 @@ export namespace Identity {
     }
   }
 
-  async function refresh(token: string, tokenHash: string): Promise<void> {
-    const profile = await fetchProfile(token).catch(() => null)
-    if (profile?.email) await write({ token: tokenHash, email: profile.email, fetchedAt: Date.now() })
+  async function refresh(_token: string, _tokenHash: string): Promise<void> {
+    // Profile fetching was removed when the gateway's fetchProfile was stripped.
+    // The cache is now populated only from explicit updateFromKiloAuth calls
+    // that pass the email directly.
   }
 
   export async function updateFromKiloAuth(token: string | null, accountId?: string): Promise<void> {
@@ -127,9 +127,9 @@ export namespace Identity {
       return
     }
 
-    const profile = await fetchProfile(token).catch(() => null)
-    userId = profile?.email || null
-    if (profile?.email) await write({ token: tokenHash, email: profile.email, fetchedAt: Date.now() })
+    // Profile fetching was removed when the gateway's fetchProfile was stripped.
+    // userId stays null until a profile is resolved through another channel.
+    userId = null
   }
 
   export function reset() {

@@ -2,8 +2,6 @@ import { Button } from "@kilocode/kilo-ui/button"
 import { useDialog } from "@kilocode/kilo-ui/context/dialog"
 import { Dialog } from "@kilocode/kilo-ui/dialog"
 import { IconButton } from "@kilocode/kilo-ui/icon-button"
-import { ProviderIcon } from "@kilocode/kilo-ui/provider-icon"
-import { Select } from "@kilocode/kilo-ui/select"
 import { Spinner } from "@kilocode/kilo-ui/spinner"
 import { TextField } from "@kilocode/kilo-ui/text-field"
 import { showToast } from "@kilocode/kilo-ui/toast"
@@ -17,11 +15,6 @@ import type { ExtensionMessage, ProviderAuthState, ProviderConfig } from "../../
 import { createProviderAction } from "../../utils/provider-action"
 import { configMessage } from "../../utils/open-config"
 import { MASKED_CUSTOM_PROVIDER_KEY, resolveCustomProviderKey } from "../../../../src/shared/custom-provider"
-import {
-  CUSTOM_PROVIDER_PACKAGE,
-  isCustomProviderPackage,
-  type CustomProviderPackage,
-} from "../../../../src/shared/provider-model"
 import { ModelCard } from "./CustomProviderModelCard"
 import type {
   ChatTemplateArgsValue,
@@ -38,12 +31,6 @@ import { validateCustomProvider } from "./CustomProviderValidation"
 import type { FormErrors, FormState, HeaderRow } from "./CustomProviderValidation"
 const DEBOUNCE_MS = 500
 const SEARCH_DEBOUNCE_MS = 150
-
-const PACKAGE_OPTIONS: Array<{ value: CustomProviderPackage; label: string }> = [
-  { value: "@ai-sdk/openai-compatible", label: "OpenAI Compatible" },
-  { value: "@ai-sdk/openai", label: "OpenAI Responses" },
-  { value: "@ai-sdk/anthropic", label: "Anthropic Messages" },
-]
 
 /** Subsequence fuzzy match — "gpt4o" matches "gpt-4o-mini". */
 function fuzzy(query: string, target: string) {
@@ -148,11 +135,9 @@ function resolveAuth(existing: ExistingProvider | undefined, states: Record<stri
 }
 
 function initForm(existing: ExistingProvider | undefined, auth: ProviderAuthState | undefined): FormState {
-  const npm = existing?.config?.npm
   return {
     providerID: existing?.providerID ?? "",
     name: existing?.name ?? "",
-    npm: isCustomProviderPackage(npm) ? npm : CUSTOM_PROVIDER_PACKAGE,
     baseURL: (existing?.config?.options as { baseURL?: string } | undefined)?.baseURL ?? "",
     apiKey: resolveCustomProviderKey(auth),
     models: initModels(existing?.config),
@@ -218,18 +203,11 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
 
   // ── Auto-fetch on debounce ──────────────────────────────────────────
 
-  // Dedicated signals for the URL and API key drive the auto-fetch effect.
-  // We avoid reading form.baseURL / form.apiKey inside createEffect because
-  // SolidJS store proxies track at the property level — any store write
-  // (including setForm("models", ...)) invalidates effects that read from
-  // the same store, causing unwanted re-runs that wipe the model picker.
-  const [fetchPackage, setFetchPackage] = createSignal(form.npm)
   const [fetchURL, setFetchURL] = createSignal(form.baseURL)
   const [fetchKey, setFetchKey] = createSignal("")
   let fetchVersion = 0
 
   createEffect(() => {
-    const npm = fetchPackage()
     const url = fetchURL()
     const key = fetchKey()
     void key // subscribe to key changes without using the value here
@@ -240,7 +218,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
     setFetchStatus(undefined)
     setSearch("")
 
-    if (npm === "@ai-sdk/anthropic" || !/^https?:\/\//.test(url.trim())) return
+    if (!/^https?:\/\//.test(url.trim())) return
 
     fetchVersion++
     const version = fetchVersion
@@ -260,11 +238,6 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
     const raw = fetchKey().trim()
     const env = raw.match(/^\{env:([^}]+)\}$/)?.[1]?.trim()
     const apiKey = raw && !env ? raw : undefined
-    // When editing an existing provider with the key field untouched, the
-    // webview has no key to send — keys are stripped before provider data
-    // reaches it. Send the providerID so the extension can authenticate the
-    // fetch with the stored key (#10139). Anything typed into the field
-    // (a key or {env:VAR} syntax) takes precedence.
     const providerID = !raw && props.existing ? props.existing.providerID : undefined
     const existing = new Set(form.models.map((m) => m.id.trim().toLowerCase()).filter(Boolean))
 
@@ -552,7 +525,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
         }}
       >
         <div style={{ display: "flex", gap: "16px", "align-items": "center" }}>
-          <ProviderIcon id="synthetic" width={20} height={20} />
+          <span style={{ width: "20px", height: "20px", "flex-shrink": 0 }} />
           <div
             style={{ "font-size": "var(--kilo-font-size-16)", "font-weight": "500", color: "var(--vscode-foreground)" }}
           >
@@ -613,30 +586,6 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
               validationState={errors.name ? "invalid" : undefined}
               error={errors.name}
             />
-            <div style={{ display: "flex", "flex-direction": "column", gap: "4px" }}>
-              <label
-                style={{
-                  "font-size": "var(--kilo-font-size-12)",
-                  "font-weight": "500",
-                  color: "var(--text-weak-base)",
-                }}
-              >
-                {language.t("provider.custom.field.package.label")}
-              </label>
-              <Select
-                options={PACKAGE_OPTIONS}
-                current={PACKAGE_OPTIONS.find((option) => option.value === form.npm)}
-                value={(option) => option.value}
-                label={(option) => option.label}
-                onSelect={(option) => {
-                  if (!option) return
-                  setForm("npm", option.value)
-                  setFetchPackage(option.value)
-                }}
-                variant="secondary"
-                triggerVariant="settings"
-              />
-            </div>
             <TextField
               label={language.t("provider.custom.field.baseURL.label")}
               placeholder={language.t("provider.custom.field.baseURL.placeholder")}

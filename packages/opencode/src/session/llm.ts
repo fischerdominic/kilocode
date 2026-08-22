@@ -260,18 +260,13 @@ const live: Layer.Layer<
       }
 
       const instance = yield* InstanceState.context
-      // kilocode_change start - capture eligible session export request start
-      const isKilo = input.model.api.npm === "@kilocode/kilo-gateway"
       const exporting = SessionExport.enabled
-      const org = yield* exporting && isKilo && input.model.isFree === true
-        ? Effect.promise(() => getActiveOrg())
-        : Effect.succeed({ type: "unknown" as const })
       const started = Date.now()
       const parent = input.parentSessionID ?? KiloSession.resolveParent(input.sessionID)
       const found = KiloSession.resolveRoot(input.sessionID)
       const root = parent ? (found === input.sessionID ? parent : found) : input.sessionID
-      const exportable =
-        exporting && isKilo && input.model.isFree === true && org.type === "personal" && input.agent.name !== "title"
+      const exportable = exporting && false // No more built-in providers to export
+      const org: string | undefined = undefined
       if (exportable) {
         SessionExport.beforeRequest({
           input: { model: input.model, org },

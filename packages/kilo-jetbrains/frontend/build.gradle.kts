@@ -32,33 +32,12 @@ dependencies {
     testRuntimeOnly(libs.junit.vintage.engine)
 }
 
-val providerIcons = tasks.register<Copy>("generateProviderIcons") {
-    val src = layout.projectDirectory.dir("../../ui/src/assets/icons/provider")
-    val out = layout.buildDirectory.dir("generated/provider-icons/icons/providers")
-    from(src) {
-        include("*.svg")
-        filter { line: String -> line.replace("currentColor", "#6E6E6E") }
-    }
-    into(out)
-}
-
-val providerIconsDark = tasks.register<Copy>("generateProviderIconsDark") {
-    val src = layout.projectDirectory.dir("../../ui/src/assets/icons/provider")
-    val out = layout.buildDirectory.dir("generated/provider-icons/icons/providers")
-    from(src) {
-        include("*.svg")
-        rename { name -> name.removeSuffix(".svg") + "_dark.svg" }
-        filter { line: String -> line.replace("currentColor", "#CED0D6") }
-    }
-    into(out)
-}
-
 sourceSets.main {
-    resources.srcDir(layout.buildDirectory.dir("generated/provider-icons"))
+    resources.srcDir(layout.buildDirectory.dir("generated"))
 }
 
 tasks.processResources {
-    dependsOn(providerIcons, providerIconsDark)
+    // Provider icons removed
 }
 
 tasks.test {

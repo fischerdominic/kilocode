@@ -78,7 +78,7 @@ import { mergeMessages, sameReconcileShape } from "./session-merge"
 import { state as todoState } from "./todo-revert"
 import { sessionVariantKeys, transferVariants, variantKey } from "./session-variant-store"
 import { createSessionVariants } from "./session-variants"
-import { KILO_AUTO, KILO_PROVIDER_ID, parseModelString } from "../../../src/shared/provider-model"
+import { parseModelString } from "../../../src/shared/provider-model"
 import { reviewMetadata, type ReviewMessageData } from "../../../src/shared/review-comments"
 import { visibleMessages as filterVisibleMessages } from "./session-queue"
 import { clearSessionDraftDiscarded, deleteDraftsForSession } from "../utils/draft-store"
@@ -396,11 +396,6 @@ export const SessionProvider: ParentComponent = (props) => {
   const [agents, setAgents] = createSignal<AgentInfo[]>([])
   const [allAgents, setAllAgents] = createSignal<AgentInfo[]>([])
   const [defaultAgent, setDefaultAgent] = createSignal("code")
-  const [pendingKiloModel, setPendingKiloModel] = createSignal<{
-    modelID?: string
-    agent?: string
-    after: number
-  } | null>(null)
   const [catalog, setCatalog] = createSignal(0)
 
   // Skills loaded from the CLI backend
@@ -594,7 +589,7 @@ export const SessionProvider: ParentComponent = (props) => {
       mode: getModeModel(agentName),
       global: getGlobalModel(),
       recent: store.recentModels,
-      fallback: KILO_AUTO,
+      fallback: { providerID: "", modelID: "" },
     })
   }
 
@@ -685,36 +680,13 @@ export const SessionProvider: ParentComponent = (props) => {
   })
   const selectModel = models.select
 
-  function selectKiloModel(modelID?: string, agent?: string) {
-    if (!modelID && !agent) return
-    setPendingKiloModel({ ...(modelID && { modelID }), ...(agent && { agent }), after: catalog() })
-    if (modelID) vscode.postMessage({ type: "requestProviders" })
-  }
-
   const unsubKiloModel = vscode.onMessage((message: ExtensionMessage) => {
     if (message.type === "providersLoaded") {
       setCatalog((value) => value + 1)
       return
     }
-    if (message.type === "selectKiloModel") selectKiloModel(message.modelID, message.agent)
   })
   onCleanup(unsubKiloModel)
-
-  createEffect(() => {
-    const pending = pendingKiloModel()
-    if (!pending || agents().length === 0 || (pending.modelID && catalog() <= pending.after)) return
-    setPendingKiloModel(null)
-    if (pending.modelID && !provider.providers()[KILO_PROVIDER_ID]?.models[pending.modelID]) {
-      console.warn("[Kilo New] Ignoring unavailable Kilo catalog model:", pending.modelID)
-      return
-    }
-    if (pending.agent && !agentNames().has(pending.agent)) {
-      console.warn("[Kilo New] Ignoring unavailable Kilo agent:", pending.agent)
-      return
-    }
-    if (pending.agent) selectAgent(pending.agent)
-    if (pending.modelID) selectModel(KILO_PROVIDER_ID, pending.modelID)
-  })
 
   function promptAgent(sessionID?: string) {
     return resolvePromptAgent({
@@ -781,7 +753,7 @@ export const SessionProvider: ParentComponent = (props) => {
         connected: provider.connected(),
         getModeModel,
         getGlobalModel,
-        fallback: KILO_AUTO,
+        fallback: { providerID: "", modelID: "" },
       },
       agentName,
       userSetAgents()[agentName] === true,

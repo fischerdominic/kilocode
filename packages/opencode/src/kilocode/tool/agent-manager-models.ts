@@ -46,8 +46,7 @@ function entries(providers: Record<ProviderV2.ID, Provider.Info>): Entry[] {
       for (const variant of Object.keys(model.variants ?? {})) {
         if (!entry.variants.includes(variant)) entry.variants.push(variant)
       }
-      const index = typeof model.recommendedIndex === "number" ? model.recommendedIndex : Number.POSITIVE_INFINITY
-      entry.rank = Math.min(entry.rank, index)
+      entry.rank = Math.min(entry.rank, Number.POSITIVE_INFINITY)
       byName.set(model.name, entry)
     }
   }

@@ -25,7 +25,6 @@ it.instance(
       provider: {
         custom: {
           name: "Custom",
-          npm: "@ai-sdk/openai-compatible",
           options: { apiKey: "test" },
           models: {
             "qwen-custom": {

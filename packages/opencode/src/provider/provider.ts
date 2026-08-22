@@ -406,7 +406,7 @@ const layer = Layer.effect(
             if (!model) continue
             const existingModel = parsed.models[model.id ?? modelID]
             const apiID = model.id ?? existingModel?.api.id ?? modelID
-            const apiNpm = model.provider?.npm ?? provider.npm ?? "@ai-sdk/openai-compatible"
+            const apiNpm = model.provider?.npm ?? "@ai-sdk/openai-compatible"
             const name = iife(() => {
               if (model.name) return model.name
               if (model.id && model.id !== modelID) return modelID
@@ -568,11 +568,6 @@ const layer = Layer.effect(
               delete provider.models[modelID]
             if (model.status === "alpha" && !runtimeFlags.enableExperimentalModels) delete provider.models[modelID]
             if (model.status === "deprecated") delete provider.models[modelID]
-            if (
-              (configProvider?.blacklist && configProvider.blacklist.includes(modelID)) ||
-              (configProvider?.whitelist && !configProvider.whitelist.includes(modelID))
-            )
-              delete provider.models[modelID]
 
             if (model.variants === undefined) {
               model.variants = mapValues(ProviderTransform.variants(model), (v) => v)

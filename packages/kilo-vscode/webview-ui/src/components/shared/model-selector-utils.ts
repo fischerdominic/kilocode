@@ -1,13 +1,8 @@
 import type { ModelSelection, ModelUsageMap } from "../../types/messages"
 import type { EnrichedModel } from "../../context/provider"
 import { searchMatch } from "../../utils/search-match"
-import {
-  KILO_PROVIDER_ID as KILO_GATEWAY_ID,
-  PROVIDER_PRIORITY as PROVIDER_ORDER,
-  providerOrderIndex,
-} from "../../../../src/shared/provider-model"
 
-export { KILO_GATEWAY_ID, PROVIDER_ORDER }
+export const KILO_GATEWAY_ID = "kilo"
 
 export const KILO_AUTO_SMALL_IDS = new Set(["kilo-auto/small", "auto-small"])
 const AUTO_FALLBACK = "Routes requests automatically."
@@ -42,10 +37,6 @@ export function autoSummary(model: Pick<EnrichedModel, "options">): string {
 
 export function isSmall(model: Pick<EnrichedModel, "providerID" | "id">): boolean {
   return model.providerID === KILO_GATEWAY_ID && KILO_AUTO_SMALL_IDS.has(model.id)
-}
-
-export function providerSortKey(providerID: string, order: readonly string[] = PROVIDER_ORDER): number {
-  return providerOrderIndex(providerID, order as typeof PROVIDER_ORDER)
 }
 
 export function isFree(model: Pick<EnrichedModel, "isFree">): boolean {
@@ -170,7 +161,6 @@ export function rankModelSearch(
               (options.favorites?.has(modelSelectionKey(a.model.providerID, a.model.id)) ? 1 : 0) ||
             (recent.get(modelSelectionKey(a.model.providerID, a.model.id)) ?? Infinity) -
               (recent.get(modelSelectionKey(b.model.providerID, b.model.id)) ?? Infinity) ||
-            providerSortKey(a.model.providerID) - providerSortKey(b.model.providerID) ||
             a.model.providerName.localeCompare(b.model.providerName) ||
             a.model.name.localeCompare(b.model.name) ||
             a.model.id.localeCompare(b.model.id),
@@ -211,6 +201,25 @@ export function stripSubProviderPrefix(name: string): string {
   const prefix = name.slice(0, colon)
   if (prefix.toLowerCase() === KILO_GATEWAY_ID) return name
   return name.slice(colon + 2)
+}
+
+const PROVIDER_SORT_ORDER: Record<string, number> = {
+  anthropic: 1,
+  openai: 2,
+  google: 3,
+  azure: 4,
+  bedrock: 5,
+  together: 6,
+  fireworks: 7,
+  groq: 8,
+  "ollama": 9,
+  "lmstudio": 10,
+  "openrouter": 11,
+  "kilo": 12,
+}
+
+export function providerSortKey(providerID: string): number {
+  return PROVIDER_SORT_ORDER[providerID] ?? 100
 }
 
 export function buildTriggerLabel(

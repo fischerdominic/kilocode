@@ -193,19 +193,11 @@ function View(props: { api: TuiPluginApi }) {
                     <text fg={theme().textMuted}>{" └ Kilo Pass"}</text>
                     <text fg={theme().textMuted}>{passLine(pass())}</text>
                   </box>
-                  <Show when={pass().currentPeriodBonusCreditsUsd > 0}>
+                  <Show when={pass().currentPeriodBaseCreditsUsd > 0}>
                     <box flexDirection="row" justifyContent="space-between" gap={1}>
-                      <text fg={theme().textMuted}>{"    Bonus"}</text>
-                      <text fg={theme().textMuted}>{"+" + format(pass().currentPeriodBonusCreditsUsd)}</text>
+                      <text fg={theme().textMuted}>{"    Base"}</text>
+                      <text fg={theme().textMuted}>{format(pass().currentPeriodBaseCreditsUsd)}</text>
                     </box>
-                  </Show>
-                  <Show when={resetLabel(pass().nextBillingAt)}>
-                    {(date) => (
-                      <box flexDirection="row" justifyContent="space-between" gap={1}>
-                        <text fg={theme().textMuted}>{"    Renews"}</text>
-                        <text fg={theme().textMuted}>{date()}</text>
-                      </box>
-                    )}
                   </Show>
                 </box>
               )}

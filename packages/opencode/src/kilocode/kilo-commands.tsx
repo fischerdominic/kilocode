@@ -299,8 +299,8 @@ export function registerKiloCommands(useSDK: () => UseSDK) {
                     refreshBalance()
 
                     // Show success toast
-                    const teamName = orgId
-                      ? profile.organizations!.find((o) => o.id === orgId)?.name
+                    const teamName: string = orgId
+                      ? profile.organizations!.find((o: { id: string }) => o.id === orgId)?.name ?? "Personal"
                       : "Personal"
 
                     toast.show({

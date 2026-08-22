@@ -143,19 +143,12 @@ const requireBaseURL = (model: Provider.Model, url: string | undefined) => {
 }
 
 export const model = (input: Provider.Model | RequestInput, headers?: Record<string, string>) => {
-  const model = "model" in input ? input.model : input
-  const url = baseURL(input)
-  // Only OpenAI-compatible providers are supported in self-hosted mode
-  if (model.api.npm !== "@ai-sdk/openai-compatible") {
-    throw new Error(`Native LLM request adapter only supports openai-compatible providers, got: ${model.api.npm}`)
-  }
-  const options: Record<string, unknown> = {
-    ...("model" in input && input.apiKey ? { apiKey: input.apiKey } : {}),
-    ...(url ? { baseURL: url } : {}),
-    headers: Object.keys({ ...model.headers, ...headers }).length === 0 ? undefined : { ...model.headers, ...headers },
-  }
-  const provider = createOpenAICompatible({ name: String(model.providerID), ...options })
-  return provider(model.api.id)
+  // Native runtime requires provider facades that are only available with built-in providers.
+  // Self-hosted mode only supports the AI SDK path (default runtime).
+  throw new Error(
+    `Native LLM request adapter is not supported for custom OpenAI-compatible providers. ` +
+    `Use the AI SDK runtime instead (set KILO_EXPERIMENTAL_NATIVE_LLM=false).`,
+  )
 }
 
 export const request = (input: RequestInput) => {

@@ -155,16 +155,6 @@ export namespace RemoteModelCatalog {
         output: source.limit.output,
       },
       status: source.status,
-      ...(typeof source.recommendedIndex === "number" && Number.isFinite(source.recommendedIndex)
-        ? { recommendedIndex: source.recommendedIndex }
-        : {}),
-      ...(typeof source.isFree === "boolean" ? { isFree: source.isFree } : {}),
-      ...(typeof source.mayTrainOnYourPrompts === "boolean"
-        ? { mayTrainOnYourPrompts: source.mayTrainOnYourPrompts }
-        : {}),
-      ...(typeof source.hasUserByokAvailable === "boolean"
-        ? { hasUserByokAvailable: source.hasUserByokAvailable }
-        : {}),
       options: {},
       headers: {},
       release_date: "",

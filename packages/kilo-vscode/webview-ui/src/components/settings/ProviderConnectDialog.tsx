@@ -12,11 +12,6 @@ import { useLanguage } from "../../context/language"
 import { useProvider } from "../../context/provider"
 import { useVSCode } from "../../context/vscode"
 import { createProviderAction } from "../../utils/provider-action"
-import {
-  ATOMIC_CHAT_PROVIDER_KEY,
-  isLocalProviderOptionalApiKey,
-  LOCAL_PROVIDER_API_KEY_PLACEHOLDER,
-} from "../../utils/local-providers"
 import AnacondaDesktopDialog from "./AnacondaDesktopDialog"
 
 interface ProviderConnectDialogProps {
@@ -349,7 +344,6 @@ const ProviderConnectDialog: Component<ProviderConnectDialogProps> = (props) => 
     const [value, setValue] = createSignal("")
     const [fields, setFields] = createStore<Record<string, string>>({})
     const prompts = createMemo(() => method()?.prompts?.filter((prompt) => visible(prompt, fields)) ?? [])
-    const apiKeyOptional = () => isLocalProviderOptionalApiKey(props.providerID)
 
     function apiKeyDescription() {
       if (bedrockKeys()) {
@@ -357,12 +351,6 @@ const ProviderConnectDialog: Component<ProviderConnectDialogProps> = (props) => 
       }
       if (vertexCredentials()) {
         return language.t("provider.connect.vertex.description")
-      }
-      if (props.providerID === ATOMIC_CHAT_PROVIDER_KEY) {
-        return language.t("provider.connect.atomicChat.description")
-      }
-      if (apiKeyOptional()) {
-        return language.t("provider.connect.apiKey.description.local", { provider: name() })
       }
       return language.t("provider.connect.apiKey.description", { provider: name() })
     }
@@ -373,9 +361,6 @@ const ProviderConnectDialog: Component<ProviderConnectDialogProps> = (props) => 
       }
       if (vertexCredentials()) {
         return language.t("provider.connect.vertex.credentials.label")
-      }
-      if (apiKeyOptional()) {
-        return language.t("provider.connect.apiKey.label.optional", { provider: name() })
       }
       return language.t("provider.connect.apiKey.label", { provider: name() })
     }
@@ -389,7 +374,7 @@ const ProviderConnectDialog: Component<ProviderConnectDialogProps> = (props) => 
     function submit(e: SubmitEvent) {
       e.preventDefault()
       const trimmed = value().trim()
-      const apiKey = trimmed || (apiKeyOptional() ? LOCAL_PROVIDER_API_KEY_PLACEHOLDER : "")
+      const apiKey = trimmed || ""
       if (!apiKey) {
         setState({ ...state, error: apiKeyRequired(), field: "apiKey" })
         return
@@ -464,9 +449,7 @@ const ProviderConnectDialog: Component<ProviderConnectDialogProps> = (props) => 
               ? language.t("provider.connect.bedrock.accessKeyId.placeholder")
               : vertexCredentials()
                 ? language.t("provider.connect.vertex.credentials.placeholder")
-                : apiKeyOptional()
-                  ? language.t("provider.connect.apiKey.placeholder.optional")
-                  : language.t("provider.connect.apiKey.placeholder")
+                : language.t("provider.connect.apiKey.placeholder")
           }
           value={value()}
           onChange={setValue}

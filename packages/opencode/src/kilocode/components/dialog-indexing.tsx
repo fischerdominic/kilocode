@@ -243,7 +243,7 @@ function KiloModelSelect(props: SubDialogProps) {
       current={current()}
       renderFilter={(catalog()?.models.length ?? 0) > 0}
       onSelect={async (option) => {
-        if (!option.value || !catalog()?.models.some((model) => model.id === option.value)) return
+        if (!option.value || !catalog()?.models.some((model: { id: string }) => model.id === option.value)) return
         log.info("selected Kilo embedding model", { model: option.value, scope: props.scope })
         await saveScopedIndexing(
           sdk,

@@ -33,7 +33,7 @@ describe("profile CLI formatting", () => {
         profile: {
           name: "User One",
           email: "one@example.com",
-          organizations: [{ id: "org-1", name: "Team One", role: "admin" }],
+          organizations: [{ id: "org-1", name: "Team One" }],
         },
         balance: { balance: 3.5 },
         organizationId: "org-1",

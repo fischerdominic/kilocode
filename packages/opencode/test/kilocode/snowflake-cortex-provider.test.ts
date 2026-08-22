@@ -41,7 +41,6 @@ it.effect("loads Snowflake Cortex from OAuth credentials", () =>
             provider: {
               "snowflake-cortex": {
                 name: "Snowflake Cortex",
-                npm: "@ai-sdk/openai-compatible",
                 models: { test: { name: "Test" } },
               },
             },

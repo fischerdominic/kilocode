@@ -44,25 +44,23 @@ describe("indexing dialog state", () => {
 
   test("builds stable loading, empty, and loaded model options", () => {
     expect(kiloModelOptions()).toEqual([{ value: "", title: "Loading supported models..." }])
-    expect(kiloModelOptions({ defaultModel: "", models: [], aliases: {} })).toEqual([
+    expect(kiloModelOptions({ models: [] })).toEqual([
       { value: "", title: "No supported models available" },
     ])
 
     const catalog = {
-      defaultModel: "provider/default",
       models: [
         { id: "provider/default", name: "Default", dimension: 1024, scoreThreshold: 0.35 },
         { id: "provider/code", name: "Code", dimension: 1536, scoreThreshold: 0.4, note: "code" },
       ],
-      aliases: { code: "provider/code" },
     }
 
     expect(kiloModelOptions(catalog)).toEqual([
       { value: "provider/default", title: "Default (1024d)" },
       { value: "provider/code", title: "Code (code, 1536d)" },
     ])
-    expect(currentKiloModel(catalog, "code")).toBe("provider/code")
-    expect(currentKiloModel(catalog, "missing")).toBe("provider/default")
+    expect(currentKiloModel({ ...catalog, defaultModel: "provider/default", aliases: { code: "provider/code" } }, "code")).toBe("provider/code")
+    expect(currentKiloModel({ ...catalog, defaultModel: "provider/default", aliases: { code: "provider/code" } }, "missing")).toBe("provider/default")
   })
 
   test("classifies scalar and partial nested inheritance", () => {

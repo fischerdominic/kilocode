@@ -1,4 +1,3 @@
-import type { CustomProviderPackage } from "../../../../src/shared/provider-model"
 import type { Modalities, ModelEntry, VariantEntry } from "./CustomProviderModelCard"
 
 type Translator = (key: string, params?: Record<string, string>) => string
@@ -11,7 +10,6 @@ export type HeaderRow = {
 export type FormState = {
   providerID: string
   name: string
-  npm: CustomProviderPackage
   baseURL: string
   apiKey: string
   models: ModelEntry[]
@@ -44,7 +42,6 @@ type ValidateResult = {
     name: string
     key: string | undefined
     config: {
-      npm: CustomProviderPackage
       name: string
       env?: string[]
       options: { baseURL: string; headers?: Record<string, string> }
@@ -219,7 +216,6 @@ export function validateCustomProvider(input: ValidateArgs): ValidateResult {
       name,
       key,
       config: {
-        npm: input.form.npm,
         name,
         ...resolveEnv(rawEnv, savedEnv),
         options,

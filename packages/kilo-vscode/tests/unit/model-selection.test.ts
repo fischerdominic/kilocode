@@ -1,7 +1,9 @@
 import { describe, expect, it } from "bun:test"
 import { resolveModelSelection } from "../../webview-ui/src/context/model-selection"
-import { KILO_AUTO, parseModelString } from "../../src/shared/provider-model"
-import type { Provider } from "../../webview-ui/src/types/messages"
+import { parseModelString } from "../../src/shared/provider-model"
+import type { ModelSelection, Provider } from "../../webview-ui/src/types/messages"
+
+const KILO_AUTO: ModelSelection = { providerID: "kilo", modelID: "kilo-auto/free" }
 
 function makeProvider(id: string, name: string, modelIds: string[]): Provider {
   const models: Provider["models"] = {}

@@ -5,7 +5,6 @@ import { ConfigAgentV1 } from "./agent"
 import { ConfigMCPV1 } from "./mcp"
 import { ConfigPermissionV1 } from "./permission"
 import { ConfigProviderV1 } from "./provider"
-import { ConfigProviderOptionsV1 } from "./provider-options"
 
 const keys = new Set([
   "logLevel",
@@ -179,36 +178,24 @@ function providers(info?: Readonly<Record<string, ConfigProviderV1.Info | null>>
 }
 
 function migrateProvider(info: ConfigProviderV1.Info) {
-  const lowerer = ConfigProviderOptionsV1.get(info.npm)
-  const options = lowerer.provider(info.options ?? {})
-  const url = info.api ?? options.url
+  const url = info.api
   return {
     name: info.name,
     env: info.env,
-    api: info.npm
-      ? {
-          type: "aisdk" as const,
-          package: info.npm,
-          ...(url === undefined ? {} : { url }),
-          settings: options.settings ?? {},
-        }
-      : undefined,
-    request: info.options && { headers: options.headers, body: options.body },
+    api: url ? { url } : undefined,
+    request: info.options && { headers: info.options?.headers, body: info.options?.body },
     // kilocode_change - model entries may be null (delete sentinel); migration has nothing to convert for those
     models:
       info.models &&
       Object.fromEntries(
         Object.entries(info.models)
           .filter((entry): entry is [string, typeof ConfigProviderV1.Model.Type] => entry[1] !== null)
-          .map(([name, model]) => [name, migrateModel(model, info.npm)]),
+          .map(([name, model]) => [name, migrateModel(model)]),
       ),
   }
 }
 
-function migrateModel(info: typeof ConfigProviderV1.Model.Type, packageName?: string) {
-  const packageID = info.provider?.npm ?? packageName
-  const lowerer = ConfigProviderOptionsV1.get(packageID)
-  const request = info.options && lowerer.request(info.options)
+function migrateModel(info: typeof ConfigProviderV1.Model.Type) {
   const costs = info.cost && [
     {
       input: info.cost.input,
@@ -233,21 +220,11 @@ function migrateModel(info: typeof ConfigProviderV1.Model.Type, packageName?: st
   return {
     family: info.family,
     name: info.name,
-    api: info.provider?.npm
-      ? {
-          ...(info.id === undefined ? {} : { id: info.id }),
-          type: "aisdk" as const,
-          package: info.provider.npm,
-          ...(info.provider.api === undefined ? {} : { url: info.provider.api }),
-          settings: {},
-        }
-      : info.id === undefined
-        ? undefined
-        : { id: info.id },
+    api: info.id === undefined ? undefined : { id: info.id },
     capabilities,
-    request: (info.headers || request) && {
+    request: (info.headers || info.options?.body) && {
       headers: info.headers,
-      body: request,
+      body: info.options?.body,
     },
     // kilocode_change - variant entries may be null (delete sentinel); migration has nothing to convert for those
     variants:
@@ -256,7 +233,7 @@ function migrateModel(info: typeof ConfigProviderV1.Model.Type, packageName?: st
         .filter((entry): entry is [string, NonNullable<(typeof info.variants)[string]>] => entry[1] !== null)
         .map(([id, options]) => ({
         id,
-        body: lowerer.request(options),
+        body: options,
       })),
     cost: costs,
     disabled: info.status === "deprecated" ? true : undefined,

@@ -47,32 +47,6 @@ export function soul() {
 // kilocode_change end
 
 export function provider(model: Provider.Model) {
-  // kilocode_change start
-  function prompt() {
-    switch (model.prompt) {
-      case "anthropic":
-        return [PROMPT_ANTHROPIC]
-      case "anthropic_without_todo":
-        return [PROMPT_DEFAULT]
-      case "beast":
-        return [PROMPT_BEAST]
-      case "codex":
-        return [PROMPT_CODEX]
-      case "gemini":
-        return [PROMPT_GEMINI]
-      case "gpt55":
-        return [PROMPT_GPT55]
-      case "ling":
-        return [PROMPT_LING]
-      case "trinity":
-        return [PROMPT_TRINITY]
-    }
-    return undefined
-  }
-
-  const kilo = prompt()
-  if (kilo) return kilo
-  // kilocode_change end
   if (model.api.id.includes("muse-spark")) return [PROMPT_META]
   if (model.api.id.includes("gpt-4") || model.api.id.includes("o1") || model.api.id.includes("o3"))
     return [PROMPT_BEAST]

@@ -108,8 +108,3 @@
     }
   }
 }
-
-/* Remove provider icons from prompt input toolbar until we have a good design for them in that context */
-[data-component="prompt-input-form"] [data-slot="prompt-input-toolbar"] [data-component="provider-icon"] {
-  display: none !important;
-}

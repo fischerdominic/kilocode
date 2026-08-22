@@ -9,7 +9,7 @@ import {
   sanitizeCustomProviderConfig,
   withCustomProviderDeletions,
 } from "./shared/custom-provider"
-import { isCustomProviderPackage, KILO_AUTO, KILO_PROVIDER_ID, parseModelString } from "./shared/provider-model"
+import { parseModelString } from "./shared/provider-model"
 import { configFeatures } from "./features"
 
 /**
@@ -33,7 +33,7 @@ function record(value: unknown): value is Record<string, unknown> {
 }
 
 function customProvider(config: unknown) {
-  return record(config) && isCustomProviderPackage(config.npm)
+  return record(config) && typeof config.name === "string" && typeof config.options === "object"
 }
 
 function same(a: unknown, b: unknown): boolean {
@@ -75,10 +75,6 @@ export async function fetchProviderData(client: KiloClient, dir: string) {
     const raw = item as Record<string, unknown>
     if (typeof raw.id === "string" && typeof raw.key === "string" && raw.key) {
       authStates[raw.id] = "api"
-      // Retain the key on the extension side so model fetches for an existing
-      // provider can authenticate without the webview ever seeing the secret
-      // (#10139). Only providers with a configured baseURL are retained — the
-      // fetch handler requires a URL match before applying a stored key.
       const options = record(raw.options) ? raw.options : undefined
       const baseURL = options && typeof options.baseURL === "string" ? options.baseURL : undefined
       if (baseURL) storedKeys[raw.id] = { key: raw.key, baseURL }
@@ -88,8 +84,7 @@ export async function fetchProviderData(client: KiloClient, dir: string) {
     delete next.key
     return next as (typeof response.all)[number]
   })
-  delete authStates[KILO_PROVIDER_ID]
-  if (kiloAuth) authStates[KILO_PROVIDER_ID] = kiloAuth
+  if (kiloAuth) authStates["kilo"] = kiloAuth
   return { response: { ...response, all }, authMethods, authStates, storedKeys }
 }
 
@@ -179,7 +174,7 @@ export function computeDefaultSelection(
   const configured = parseModelString(cachedConfig?.config?.model)
   if (configured) return configured
   if (vscodePID && vscodeMID) return { providerID: vscodePID, modelID: vscodeMID }
-  return { ...KILO_AUTO }
+  return { providerID: "", modelID: "" }
 }
 
 type PostMessage = (message: unknown) => void
@@ -392,10 +387,6 @@ export async function disconnectProvider(
     // Config-sourced providers may not have auth store entries because
     // credentials can come from config or env, so auth removal is non-fatal.
     await removeAuth(ctx, id, configured)
-
-    if (id === "kilo") {
-      ctx.postMessage({ type: "profileData", data: null })
-    }
 
     if (custom) {
       await removeCustom(ctx, id, config.global, config.merged)

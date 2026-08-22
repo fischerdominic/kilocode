@@ -53,21 +53,11 @@ function rest(input: ProviderConfig["options"]) {
   return Object.fromEntries(Object.entries(input ?? {}).filter(([key]) => key !== "apiKey" && key !== "baseURL"))
 }
 
-function shown(prompt: Prompt, values: Record<string, string>) {
-  const rule = prompt.when
-  if (!rule) return true
-  const value = values[rule.key] ?? ""
-  if (rule.op === "eq") return value === rule.value
-  return value !== rule.value
-}
-
 export function useProviderSettings() {
   const ctx = useConfig()
   const snap = () => ctx.data()
-  const [mode, setMode] = createSignal<"closed" | "select" | "form">("closed")
-  const [filter, setFilter] = createSignal("")
+  const [mode, setMode] = createSignal<"closed" | "form">("closed")
   const [search, setSearch] = createSignal("")
-  const [choice, setChoice] = createSignal("")
   const [editing, setEditing] = createSignal<string | undefined>()
   const [id, setId] = createSignal("")
   const [name, setName] = createSignal("")
@@ -81,7 +71,6 @@ export function useProviderSettings() {
   const [options, setOptions] = createSignal("")
   const [models, setModels] = createSignal("")
   const [pending, setPending] = createSignal<ConfiguredProvider | undefined>()
-  const [methodIndex, setMethodIndex] = createSignal<number | undefined>()
   const [authKey, setAuthKey] = createSignal("") // kilocode_change
   const [authError, setAuthError] = createSignal("") // kilocode_change
   const [authField, setAuthField] = createSignal("") // kilocode_change
@@ -135,24 +124,10 @@ export function useProviderSettings() {
     return configured().filter((provider) => `${provider.name} ${provider.id}`.toLowerCase().includes(term))
   })
 
-  const available = createMemo(() => {
-    const data = snap()
-    if (!data) return []
-    const ids = new Set(configured().map((item) => item.id))
-    const term = filter().trim().toLowerCase()
-    return sort(data.providers.all)
-      .filter((provider) => !ids.has(provider.id))
-      .filter((provider) => {
-        if (!term) return true
-        return `${provider.name} ${provider.id}`.toLowerCase().includes(term)
-      })
-  })
-
   const selected = createMemo(() => {
     const key = id()
     return snap()?.providers.all.find((provider) => provider.id === key)
   })
-  const target = createMemo(() => available().find((provider) => provider.id === choice()) ?? available()[0])
 
   const auth = createMemo(() => snap()?.authMethods[id()]?.some((m) => m.type === "api") ?? false) // kilocode_change
 
@@ -178,62 +153,34 @@ export function useProviderSettings() {
     resetAuth()
   }
 
-  function selectMethod(index: number, providerID = id()) {
-    setMethodIndex(index)
-    setAuthorization(undefined)
-    setAuthError("")
-    setAuthField("")
-    const current = (snap()?.authMethods[providerID] ?? [])[index]
-    if (current?.type !== "oauth") return
-    setPhase("authorizing")
-    ctx.run(
-      "Authorizing provider",
-      async () => {
-        const data = await authorizeProvider(ctx.target(), providerID, index, fields())
-        setAuthorization(data)
-        setPhase(undefined)
-        if (data.url) window.open(data.url, "_blank", "noopener,noreferrer")
-        if (data.method === "auto") completeOAuth(index)
-      },
-      { refetch: false },
-    )
-  }
-
-  function setField(key: string, value: string) {
-    setFields({ ...fields(), [key]: value })
-  }
-
   function prepare(providerID: string) {
     const list = snap()?.authMethods[providerID] ?? []
-    if (list.length === 1) selectMethod(0, providerID)
+    const apiMethod = list.find((m) => m.type === "api") // kilocode_change
+    if (apiMethod) {
+      setAuthKey("")
+      setAuthError("")
+      setAuthField("")
+    }
   }
 
   function add() {
     setEditing(undefined)
-    setFilter("")
-    setChoice("")
-    setMode("select")
+    setId("")
+    setName("")
+    setEnv("")
+    setApi("")
+    setNpm("")
+    setApiKey("")
+    setBaseURL("")
+    setWhitelist("")
+    setBlacklist("")
+    setOptions("")
+    setModels("")
+    setMode("form")
   }
 
   function close() {
     setMode("closed")
-  }
-
-  function pick(provider: Provider) {
-    setEditing(undefined)
-    fill(provider, undefined, provider.id)
-    setMode("form")
-    prepare(provider.id)
-  }
-
-  function choose(provider: Provider) {
-    setChoice(provider.id)
-  }
-
-  function next() {
-    const provider = target()
-    if (!provider) return
-    pick(provider)
   }
 
   function edit(item: ConfiguredProvider) {
@@ -243,43 +190,17 @@ export function useProviderSettings() {
     prepare(item.id)
   }
 
-  function connectAuth() {
+  function connectAuth() { // kilocode_change
     const key = clean(authKey())
     if (!key) {
       setAuthError("Enter an API key before saving.")
       setAuthField("apiKey")
       return
     }
-    const meta: Record<string, string> = {}
-    for (const prompt of prompts()) {
-      const value = clean(fields()[prompt.key] ?? "")
-      if (!value) {
-        setAuthError(`${prompt.message} is required.`)
-        setAuthField(prompt.key)
-        return
-      }
-      meta[prompt.key] = value
-    }
-    setPhase("connecting")
-    ctx.run("Connecting provider", async () =>
-      connectProvider(ctx.target(), id(), key, Object.keys(meta).length ? meta : undefined),
-    )
+    setAuthError("")
+    setAuthField("")
+    ctx.run("Connecting provider", async () => connectProvider(ctx.target(), id(), key), { refetch: false }) // kilocode_change
     close()
-  }
-
-  function completeOAuth(index = methodIndex()) {
-    if (index === undefined) return
-    const code = clean(authCode())
-    if (authorization()?.method === "code" && !code) {
-      setAuthError("Enter the authorization code before saving.")
-      setAuthField("code")
-      return
-    }
-    setPhase("connecting")
-    ctx.run("Connecting provider", async () =>
-      completeProvider(ctx.target(), id(), index, authorization()?.method === "code" ? code : undefined),
-    )
-    if (authorization()?.method === "code") close()
   }
 
   function save() {
@@ -346,28 +267,14 @@ export function useProviderSettings() {
     ctx,
     snap,
     mode,
-    filter,
-    setFilter,
     search,
     setSearch,
     configured,
     visible,
-    available,
     selected,
-    target,
     auth,
-    methods,
-    method,
-    prompts,
-    methodIndex,
-    authorization,
-    phase,
     authKey,
     setAuthKey,
-    authCode,
-    setAuthCode,
-    fields,
-    setField,
     authError,
     authField,
     id,
@@ -395,13 +302,8 @@ export function useProviderSettings() {
     pending,
     add,
     close,
-    pick,
-    choose,
-    next,
     edit,
-    selectMethod,
     connectAuth,
-    completeOAuth,
     save,
     ask,
     cancel,

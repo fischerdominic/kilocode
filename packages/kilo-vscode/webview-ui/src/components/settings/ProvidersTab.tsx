@@ -2,8 +2,6 @@ import { Button } from "@kilocode/kilo-ui/button"
 import { Card } from "@kilocode/kilo-ui/card"
 import { Collapsible } from "@kilocode/kilo-ui/collapsible"
 import { useDialog } from "@kilocode/kilo-ui/context/dialog"
-import { Icon } from "@kilocode/kilo-ui/icon"
-import { ProviderIcon } from "@kilocode/kilo-ui/provider-icon"
 import { Select } from "@kilocode/kilo-ui/select"
 import { Tag } from "@kilocode/kilo-ui/tag"
 import { showToast } from "@kilocode/kilo-ui/toast"
@@ -16,10 +14,7 @@ import { useVSCode } from "../../context/vscode"
 import type { Provider } from "../../types/messages"
 import CustomProviderDialog from "./CustomProviderDialog"
 import ProviderConnectDialog from "./ProviderConnectDialog"
-import ProviderSelectDialog from "./ProviderSelectDialog"
-import { CUSTOM_PROVIDER_ID, isPopularProvider, providerIcon, providerNoteKey, sortProviders } from "./provider-catalog"
-import { disabledProviderOptions, providersWithKiloFallback, visibleConnectedIds } from "./provider-visibility"
-import { isCustomProviderPackage, KILO_PROVIDER_ID } from "../../../../src/shared/provider-model"
+import { disabledProviderOptions } from "./provider-visibility"
 import { createProviderAction } from "../../utils/provider-action"
 
 type ProviderSource = "env" | "api" | "config" | "custom"
@@ -37,33 +32,16 @@ const ProvidersTab: Component = () => {
 
   onCleanup(action.dispose)
 
-  const kiloLoggedIn = createMemo(() => !!provider.authStates()[KILO_PROVIDER_ID])
-
   const connectedProviders = createMemo(() => {
-    const ids = visibleConnectedIds(provider.connected(), provider.authStates())
     const all = provider.providers()
-    return ids
-      .filter((id) => id !== KILO_PROVIDER_ID)
+    return provider.connected()
       .map((id) => all[id])
       .filter((item): item is Provider => !!item)
   })
 
-  const popularProviders = createMemo(() => {
-    const connected = new Set(provider.connected())
-    const disabled = new Set(config().disabled_providers ?? [])
-    const all = Object.values(provider.providers())
-    return sortProviders(
-      all.filter(
-        (item) =>
-          item.id !== KILO_PROVIDER_ID && isPopularProvider(item) && !connected.has(item.id) && !disabled.has(item.id),
-      ),
-    )
-  })
-
   const disabledProviders = createMemo(() => config().disabled_providers ?? [])
   const disabledIds = createMemo(() => new Set(disabledProviders()))
-  const providers = createMemo(() => providersWithKiloFallback(provider.providers()))
-  const disabledOptions = createMemo(() => disabledProviderOptions(providers(), disabledProviders()))
+  const disabledOptions = createMemo(() => disabledProviderOptions(provider.providers(), disabledProviders()))
 
   function source(item: Provider): ProviderSource | undefined {
     if (!("source" in item)) return
@@ -79,7 +57,7 @@ const ProvidersTab: Component = () => {
     if (current === "api") return language.t("provider.connect.method.apiKey")
     if (current === "config") {
       const cfg = config().provider?.[item.id]
-      if (isCustomProviderPackage(cfg?.npm)) return language.t("settings.providers.tag.custom")
+      if (cfg && typeof cfg === "object" && "name" in cfg) return language.t("settings.providers.tag.custom")
       return language.t("settings.providers.tag.config")
     }
     if (item.id === "openai" && current === "custom") return language.t("settings.providers.tag.chatgpt")
@@ -93,7 +71,7 @@ const ProvidersTab: Component = () => {
 
   function isCustom(item: Provider) {
     const cfg = config().provider?.[item.id]
-    return isCustomProviderPackage(cfg?.npm)
+    return cfg && typeof cfg === "object" && "name" in cfg
   }
 
   function editProvider(item: Provider) {
@@ -134,71 +112,17 @@ const ProvidersTab: Component = () => {
   }
 
   function disabledName(id: string) {
-    const item = providers()[id]
+    const item = provider.providers()[id]
     return item?.name ?? id
   }
 
   function connectProvider(item: Provider) {
-    if (item.id === KILO_PROVIDER_ID) {
-      // Route Kilo Gateway sign-in through the Profile view so the user sees
-      // the full device-auth UI (URL, QR, code, timer, cancel). Triggering
-      // `startLogin()` from here alone would run the flow silently with no
-      // way to recover if the browser is dismissed.
-      server.goToLogin()
-      return
-    }
     dialog.show(() => <ProviderConnectDialog providerID={item.id} />)
-  }
-
-  function connectChatGPT(item: Provider) {
-    dialog.show(() => <ProviderConnectDialog providerID={item.id} oauthOnly />)
-  }
-
-  function chatgpt(item: Provider) {
-    if (item.id !== "openai") return false
-    if (source(item) === "custom") return false
-    return (provider.authMethods()[item.id] ?? []).some((method) => method.type === "oauth")
   }
 
   return (
     <div>
-      <Show when={!disabledIds().has(KILO_PROVIDER_ID)}>
-        {/* Kilo Gateway — always at the top, not editable */}
-        <Card>
-          <div
-            style={{
-              display: "flex",
-              "align-items": "center",
-              gap: "12px",
-              "min-height": "56px",
-              padding: "12px 0",
-            }}
-          >
-            <ProviderIcon id={providerIcon(KILO_PROVIDER_ID)} width={20} height={20} />
-            <span
-              style={{
-                "font-size": "var(--kilo-font-size-14)",
-                "font-weight": "500",
-                color: "var(--vscode-foreground)",
-              }}
-            >
-              Kilo Gateway
-            </span>
-            <Show
-              when={kiloLoggedIn()}
-              fallback={
-                <Button size="small" variant="secondary" onClick={() => server.goToLogin()}>
-                  {language.t("common.signIn")}
-                </Button>
-              }
-            >
-              <Tag>{language.t("settings.providers.tag.gateway")}</Tag>
-            </Show>
-          </div>
-        </Card>
-      </Show>
-
-      {/* Connected providers (excluding Kilo) */}
+      {/* Connected custom providers */}
       <h4 style={{ "margin-top": "16px", "margin-bottom": "8px" }}>
         {language.t("settings.providers.section.connected")}
       </h4>
@@ -232,7 +156,23 @@ const ProvidersTab: Component = () => {
                 }}
               >
                 <div style={{ display: "flex", "align-items": "center", gap: "12px", "min-width": 0 }}>
-                  <ProviderIcon id={providerIcon(item)} width={20} height={20} />
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      "align-items": "center",
+                      "justify-content": "center",
+                      width: "20px",
+                      height: "20px",
+                      "border-radius": "3px",
+                      "background-color": "var(--vscode-badge-background)",
+                      color: "var(--vscode-badge-foreground)",
+                      "font-size": "10px",
+                      "font-weight": 600,
+                      "flex-shrink": 0,
+                    }}
+                  >
+                    {item.id.slice(0, 2).toUpperCase()}
+                  </span>
                   <span
                     style={{
                       "font-size": "var(--kilo-font-size-14)",
@@ -259,16 +199,6 @@ const ProvidersTab: Component = () => {
                       {language.t("settings.providers.connected.environmentDescription")}
                     </span>
                   </Show>
-                  <Show when={chatgpt(item)}>
-                    <Button size="large" variant="ghost" onClick={() => connectChatGPT(item)}>
-                      {language.t("settings.providers.action.signInChatGPT")}
-                    </Button>
-                  </Show>
-                  <Show when={item.id === "anaconda-desktop"}>
-                    <Button size="large" variant="ghost" onClick={() => connectProvider(item)}>
-                      {language.t("provider.anaconda.action.manage")}
-                    </Button>
-                  </Show>
                   <Show when={canDisconnect(item)}>
                     <Show when={isCustom(item)}>
                       <Button size="large" variant="ghost" onClick={() => editProvider(item)}>
@@ -286,63 +216,11 @@ const ProvidersTab: Component = () => {
         </Show>
       </Card>
 
-      {/* Popular providers */}
+      {/* Custom provider entry */}
       <h4 style={{ "margin-top": "24px", "margin-bottom": "8px" }}>
-        {language.t("settings.providers.section.popular")}
+        {language.t("settings.providers.section.custom")}
       </h4>
       <Card>
-        <For each={popularProviders()}>
-          {(item) => {
-            const noteKey = providerNoteKey(item)
-            return (
-              <div
-                style={{
-                  display: "flex",
-                  "flex-wrap": "wrap",
-                  "align-items": "center",
-                  "justify-content": "space-between",
-                  gap: "16px",
-                  "min-height": "56px",
-                  padding: "12px 0",
-                  "border-bottom": "1px solid var(--border-weak-base)",
-                }}
-              >
-                <div style={{ display: "flex", "flex-direction": "column", "min-width": 0 }}>
-                  <div style={{ display: "flex", "align-items": "center", gap: "12px" }}>
-                    <ProviderIcon id={providerIcon(item)} width={20} height={20} />
-                    <span
-                      style={{
-                        "font-size": "var(--kilo-font-size-14)",
-                        "font-weight": "500",
-                        color: "var(--vscode-foreground)",
-                      }}
-                    >
-                      {item.name}
-                    </span>
-                  </div>
-                  <Show when={noteKey}>
-                    {(key) => (
-                      <span
-                        style={{
-                          "font-size": "var(--kilo-font-size-12)",
-                          color: "var(--text-weak-base, var(--vscode-descriptionForeground))",
-                          "padding-left": "32px",
-                        }}
-                      >
-                        {language.t(key())}
-                      </span>
-                    )}
-                  </Show>
-                </div>
-                <Button size="large" variant="secondary" icon="plus-small" onClick={() => connectProvider(item)}>
-                  {language.t("common.connect")}
-                </Button>
-              </div>
-            )
-          }}
-        </For>
-
-        {/* Custom provider entry */}
         <div
           style={{
             display: "flex",
@@ -357,7 +235,23 @@ const ProvidersTab: Component = () => {
         >
           <div style={{ display: "flex", "flex-direction": "column", "min-width": 0 }}>
             <div style={{ display: "flex", "flex-wrap": "wrap", "align-items": "center", gap: "12px" }}>
-              <ProviderIcon id="synthetic" width={20} height={20} />
+              <span
+                style={{
+                  display: "inline-flex",
+                  "align-items": "center",
+                  "justify-content": "center",
+                  width: "20px",
+                  height: "20px",
+                  "border-radius": "3px",
+                  "background-color": "var(--vscode-badge-background)",
+                  color: "var(--vscode-badge-foreground)",
+                  "font-size": "10px",
+                  "font-weight": 600,
+                  "flex-shrink": 0,
+                }}
+              >
+                CP
+              </span>
               <span
                 style={{
                   "font-size": "var(--kilo-font-size-14)",
@@ -388,40 +282,6 @@ const ProvidersTab: Component = () => {
             {language.t("common.connect")}
           </Button>
         </div>
-
-        {/* Show more providers — prominent entry point to the full catalog */}
-        <button
-          type="button"
-          onClick={() => dialog.show(() => <ProviderSelectDialog />)}
-          style={{
-            display: "flex",
-            "align-items": "center",
-            "justify-content": "space-between",
-            gap: "16px",
-            width: "100%",
-            "min-height": "56px",
-            padding: "12px 0",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            "text-align": "left",
-            color: "var(--vscode-foreground)",
-            font: "inherit",
-          }}
-        >
-          <div style={{ display: "flex", "align-items": "center", gap: "12px", "min-width": 0 }}>
-            <Icon name="providers" size="small" />
-            <span
-              style={{
-                "font-size": "var(--kilo-font-size-14)",
-                "font-weight": "500",
-              }}
-            >
-              {language.t("dialog.provider.viewAll")}
-            </span>
-          </div>
-          <Icon name="chevron-right" size="small" />
-        </button>
       </Card>
 
       {/* Disabled providers — collapsed by default to keep the focus on active providers */}
@@ -501,7 +361,23 @@ const ProvidersTab: Component = () => {
                     }}
                   >
                     <div style={{ display: "flex", "align-items": "center", gap: "12px", "min-width": 0 }}>
-                      <ProviderIcon id={providerIcon(id)} width={20} height={20} />
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          "align-items": "center",
+                          "justify-content": "center",
+                          width: "20px",
+                          height: "20px",
+                          "border-radius": "3px",
+                          "background-color": "var(--vscode-badge-background)",
+                          color: "var(--vscode-badge-foreground)",
+                          "font-size": "10px",
+                          "font-weight": 600,
+                          "flex-shrink": 0,
+                        }}
+                      >
+                        {id.slice(0, 2).toUpperCase()}
+                      </span>
                       <span
                         style={{
                           "font-size": "var(--kilo-font-size-14)",

@@ -36,19 +36,9 @@
   align-items: flex-start;
 }
 
-.kilo-console .provider-drawer-title .provider-icon {
-  margin-top: 0.2rem;
-}
-
 .kilo-console .provider-actions {
   gap: 0.25rem;
   justify-content: flex-end;
-}
-
-.kilo-console .provider-icon {
-  flex: 0 0 auto;
-  width: 1.75rem;
-  height: 1.75rem;
 }
 
 .kilo-console .provider-title strong,

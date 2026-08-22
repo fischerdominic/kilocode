@@ -11,10 +11,10 @@ import {
 import { isCustomProviderPackage } from "../../src/shared/provider-model"
 
 describe("isCustomProviderPackage", () => {
-  it("recognizes supported custom provider packages", () => {
+  it("recognizes the supported custom provider package", () => {
     expect(isCustomProviderPackage("@ai-sdk/openai-compatible")).toBe(true)
-    expect(isCustomProviderPackage("@ai-sdk/openai")).toBe(true)
-    expect(isCustomProviderPackage("@ai-sdk/anthropic")).toBe(true)
+    expect(isCustomProviderPackage("@ai-sdk/openai")).toBe(false)
+    expect(isCustomProviderPackage("@ai-sdk/anthropic")).toBe(false)
     expect(isCustomProviderPackage("malicious-package")).toBe(false)
   })
 })
