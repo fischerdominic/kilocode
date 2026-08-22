@@ -1,4 +1,10 @@
-import type { KilocodeNotification } from "@kilocode/kilo-gateway"
+interface KilocodeNotification {
+  id: string
+  title: string
+  message: string
+  action?: { actionText: string; actionURL: string }
+  showIn?: string[]
+}
 
 export namespace News {
   export const key = "news_read_ids"

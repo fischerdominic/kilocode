@@ -93,12 +93,14 @@ export const Info = Schema.Struct({
     description:
       "Automatically update to the latest version. Set to true to auto-update, false to disable, or 'notify' to show update notifications",
   }),
+  // kilocode_change start - disabled_providers and enabled_providers no longer have effect since only custom providers are supported
   disabled_providers: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
     description: "Disable providers that are loaded automatically",
   }),
   enabled_providers: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
     description: "When set, ONLY these providers will be enabled. All other providers will be ignored",
   }),
+  // kilocode_change end
   // kilocode_change start
   // NOTE: Any new kilocode_change key added to Config.Info must also be mirrored in
   // apps/web/src/app/config.json/extras.ts in the cloud repo, otherwise
@@ -219,8 +221,9 @@ export const Info = Schema.Struct({
     // kilocode_change start
   ).annotate({ description: "Agent configuration, see https://kilo.ai/docs/customize/custom-subagents" }), // kilocode_change
   provider: Schema.optional(Schema.Record(Schema.String, Schema.NullOr(ConfigProviderV1.Info))).annotate({
+    // kilocode_change start
+    description: "Custom provider configurations and model overrides (OpenAI-compatible only)",
     // kilocode_change end
-    description: "Custom provider configurations and model overrides",
   }),
   mcp: Schema.optional(
     Schema.Record(Schema.String, Schema.Union([ConfigMCPV1.Info, Schema.Struct({ enabled: Schema.Boolean })])),

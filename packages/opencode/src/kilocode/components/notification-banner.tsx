@@ -11,7 +11,14 @@
 
 import { createSignal, Show } from "solid-js"
 import { useTheme } from "@tui/context/theme"
-import type { KilocodeNotification } from "@kilocode/kilo-gateway"
+
+interface KilocodeNotification {
+  id: string
+  title: string
+  message: string
+  action?: { actionText: string; actionURL: string }
+  showIn?: string[]
+}
 
 interface NotificationBannerProps {
   notification: KilocodeNotification

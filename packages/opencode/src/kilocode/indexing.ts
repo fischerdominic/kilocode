@@ -6,7 +6,6 @@ import { toIndexingConfigInput, type IndexingConfig } from "@kilocode/kilo-index
 import { hasIndexingPlugin } from "@kilocode/kilo-indexing/detect"
 import { IndexingStatus, disabledIndexingStatus } from "@kilocode/kilo-indexing/status"
 import { Telemetry } from "@kilocode/kilo-telemetry"
-import { fetchKiloEmbeddingModelCatalog } from "@kilocode/kilo-gateway"
 import { Instance } from "@/kilocode/instance"
 import { Bus } from "@/bus"
 import { Config } from "@/config/config"
@@ -99,38 +98,10 @@ function enrichKilo(input: ReturnType<typeof toIndexingConfigInput>, auth: KiloI
 async function model(input: ReturnType<typeof toIndexingConfigInput>, auth: KiloIndexingAuth) {
   if (input.embedderProvider !== "kilo" || !input.enabled) return input
 
-  const catalog = await fetchKiloEmbeddingModelCatalog({ baseURL: auth.baseUrl, token: auth.apiKey })
-
-  if (input.modelId) {
-    const id = catalog.aliases[input.modelId] ?? input.modelId
-    const chosen = catalog.models.find((item) => item.id === id)
-    if (catalog.models.length > 0 && !chosen) {
-      throw new IndexingModelError({ model: input.modelId })
-    }
-    if (chosen) {
-      return {
-        ...input,
-        modelId: chosen.id,
-        modelDimension: chosen.dimension,
-        searchMinScore: input.searchMinScore ?? chosen.scoreThreshold,
-      }
-    }
-  }
-
-  const fallback = catalog.aliases[catalog.defaultModel] ?? catalog.defaultModel
-  const found = catalog.models.find((item) => item.id === fallback)
-  if (!found) {
-    if (input.modelId || input.modelDimension) {
-      log.warn("ignoring unsupported Kilo embedding model configuration", { model: input.modelId })
-    }
-    return { ...input, modelId: undefined, modelDimension: undefined }
-  }
-
   return {
     ...input,
-    modelId: found.id,
-    modelDimension: found.dimension,
-    searchMinScore: input.searchMinScore ?? found.scoreThreshold,
+    modelId: undefined,
+    modelDimension: undefined,
   }
 }
 
@@ -535,13 +506,10 @@ export namespace KiloIndexing {
     try {
       const cfg = await AppRuntime.runPromise(Config.Service.use((svc) => svc.getGlobal()))
       const auth = await kiloAuth(cfg)
-      const catalog = await fetchKiloEmbeddingModelCatalog({ baseURL: auth.baseUrl, token: auth.apiKey })
-      if (catalog.models.length > 0 || (!auth.baseUrl && !auth.apiKey)) return catalog
-      const fallback = await fetchKiloEmbeddingModelCatalog()
-      return fallback.models.length > 0 ? fallback : catalog
+      return { models: [], defaultModel: "", aliases: {} as Record<string, string> }
     } catch (err) {
       log.warn("falling back to public Kilo embedding model catalog", { err })
-      return fetchKiloEmbeddingModelCatalog()
+      return { models: [], defaultModel: "", aliases: {} as Record<string, string> }
     }
   }
 

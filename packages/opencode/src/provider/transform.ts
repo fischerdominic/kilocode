@@ -6,7 +6,7 @@ import type * as ModelsDev from "@opencode-ai/core/models-dev"
 import { iife } from "@/util/iife"
 import { kiloProviderOptions } from "@/kilocode/provider-options"
 import { isLing } from "@/kilocode/model-match" // kilocode_change
-import { reasoningSummary } from "@/kilocode/provider/reasoning-summary" // kilocode_change
+
 
 type Modality = NonNullable<ModelsDev.Model["modalities"]>["input"][number]
 
@@ -1041,7 +1041,7 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
           effort,
           {
             reasoningEffort: effort,
-            reasoningSummary: reasoningSummary(model), // kilocode_change
+            reasoningSummary: "auto",
             include: INCLUDE_ENCRYPTED_REASONING,
           },
         ]),
@@ -1330,13 +1330,13 @@ function reasoningEffort(model: Provider.Model, effort: string) {
     case "@ai-sdk/amazon-bedrock/mantle":
       return {
         reasoningEffort: effort,
-        reasoningSummary: reasoningSummary(model),
+        reasoningSummary: "auto",
         include: INCLUDE_ENCRYPTED_REASONING,
       } // kilocode_change - keep gpt-5.6 detailed summaries
     case "@ai-sdk/azure":
       return {
         reasoningEffort: effort,
-        reasoningSummary: reasoningSummary(model),
+        reasoningSummary: "auto",
         include: INCLUDE_ENCRYPTED_REASONING,
       } // kilocode_change
     case "@jerome-benoit/sap-ai-provider-v2":
@@ -1583,7 +1583,7 @@ export function options(input: {
         input.model.api.npm === "@kilocode/kilo-gateway" || // kilocode_change
         input.model.api.npm === "@ai-sdk/amazon-bedrock/mantle"
       ) {
-        result["reasoningSummary"] = reasoningSummary(input.model) // kilocode_change
+        result["reasoningSummary"] = "auto"
         if (input.model.api.npm === "@ai-sdk/openai" || input.model.api.npm === "@ai-sdk/amazon-bedrock/mantle") {
           result["include"] = INCLUDE_ENCRYPTED_REASONING
         }

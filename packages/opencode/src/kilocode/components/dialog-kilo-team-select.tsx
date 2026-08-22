@@ -6,8 +6,12 @@
  */
 
 import { DialogSelect } from "@tui/ui/dialog-select"
-import type { Organization } from "@kilocode/kilo-gateway"
-import { getOrganizationOptions } from "@kilocode/kilo-gateway/tui"
+
+interface Organization {
+  id: string
+  name: string
+  role?: string
+}
 
 interface DialogKiloTeamSelectProps {
   organizations: Organization[]
@@ -17,12 +21,11 @@ interface DialogKiloTeamSelectProps {
 }
 
 export function DialogKiloTeamSelect(props: DialogKiloTeamSelectProps) {
-  // Get formatted options with current markers
-  const options = getOrganizationOptions(
-    props.organizations,
-    props.currentOrgId || undefined,
-    props.hasPersonalAccount !== false,
-  )
+  const options = props.organizations.map((org) => ({
+    value: org.id,
+    title: org.name,
+    hint: org.id === props.currentOrgId ? "→ (current)" : undefined,
+  }))
 
   return (
     <DialogSelect

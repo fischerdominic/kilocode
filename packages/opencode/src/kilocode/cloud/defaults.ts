@@ -3,7 +3,6 @@ import { Config } from "@/config/config"
 import { KilocodeModelState } from "@/kilocode/config/model-state"
 import { Context, Effect, Layer, Schema } from "effect"
 import { CloudAuth } from "./auth"
-import { CloudCatalog } from "./catalog"
 import { ModelSchema, ModeSchema } from "./contracts"
 
 export namespace CloudDefaults {
@@ -93,12 +92,10 @@ export namespace CloudDefaults {
     const selected = yield* mode(input.mode, cfg.default_agent ?? undefined)
     const states = yield* ModelState
     const saved = yield* states.get()
-    const catalog = yield* CloudCatalog.Service
-    const available = new Set(yield* catalog.models(auth))
 
     if (input.model !== undefined) {
       const explicit = normalize(input.model)
-      if (!ModelSchema.safeParse(explicit).success || !available.has(explicit)) {
+      if (!ModelSchema.safeParse(explicit).success) {
         return yield* Effect.fail(
           new ResolutionError({
             kind: "model",
@@ -119,19 +116,13 @@ export namespace CloudDefaults {
       if (!value) continue
       const candidate = normalize(value)
       if (!ModelSchema.safeParse(candidate).success) continue
-      if (!available.has(candidate)) continue
       return { ...auth, mode: selected.name, model: candidate } satisfies Resolved
-    }
-
-    const fallback = normalize(yield* catalog.defaultModel(auth))
-    if (ModelSchema.safeParse(fallback).success && available.has(fallback)) {
-      return { ...auth, mode: selected.name, model: fallback } satisfies Resolved
     }
 
     return yield* Effect.fail(
       new ResolutionError({
         kind: "model",
-        message: "The Kilo model catalog has no available default model",
+        message: "No model available for the resolved mode",
       }),
     )
   })

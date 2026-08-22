@@ -10,12 +10,11 @@ import { InstanceState } from "@/effect/instance-state"
 import * as Log from "@opencode-ai/core/util/log"
 import { assertExternalDirectoryEffect } from "../../tool/external-directory"
 import { Config } from "@/config/config"
-import { KILO_OPENROUTER_BASE } from "@kilocode/kilo-gateway"
 import DESCRIPTION from "./generate-image.txt"
 
 const log = Log.create({ service: "tool.generate_image" })
 
-const KILO_OPENROUTER_URL = `${KILO_OPENROUTER_BASE}/chat/completions`
+const KILO_OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 /** Fallback catalog used when the gateway is unreachable or the user is offline. */

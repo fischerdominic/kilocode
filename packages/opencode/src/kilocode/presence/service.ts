@@ -1,6 +1,5 @@
 import { Auth } from "@/auth"
 import { EventServiceClient } from "@/kilocode/event-service/client"
-import { KILO_EVENT_SERVICE_URL } from "@kilocode/kilo-gateway"
 import * as Log from "@opencode-ai/core/util/log"
 import { Context, Effect, Layer } from "effect"
 import type { Platform } from "./context"
@@ -62,7 +61,7 @@ export namespace KiloViewers {
       const killSwitch = process.env.KILO_DISABLE_PRESENCE === "1"
       // Same endpoint the server envelope hands KiloClaw; KILO_EVENT_SERVICE_URL
       // is a presence-specific override on top of the gateway's EVENT_SERVICE_URL.
-      const url = process.env.KILO_EVENT_SERVICE_URL || KILO_EVENT_SERVICE_URL
+      const url = process.env.KILO_EVENT_SERVICE_URL || "https://events.kilo.ai"
 
       const s = {
         viewers: new Map<string, ViewerState>(),

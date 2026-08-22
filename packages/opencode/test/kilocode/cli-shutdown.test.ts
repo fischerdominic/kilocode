@@ -35,14 +35,6 @@ mock.module("@kilocode/kilo-telemetry", () => ({
   },
 }))
 
-mock.module("@kilocode/kilo-gateway", () => ({
-  ENV_FEATURE: "KILO_FEATURE",
-  ENV_VERSION: "KILO_VERSION",
-  async migrateLegacyKiloAuth() {
-    calls.push("auth:migrate")
-  },
-}))
-
 mock.module("@/effect/app-runtime", () => ({
   AppRuntime: {
     async runPromise() {

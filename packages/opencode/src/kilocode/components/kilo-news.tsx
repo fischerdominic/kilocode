@@ -10,7 +10,6 @@ import { useSync } from "@tui/context/sync"
 import { useSDK } from "@tui/context/sdk"
 import { useDialog } from "@tui/ui/dialog"
 import { useKV } from "@tui/context/kv"
-import type { KilocodeNotification } from "@kilocode/kilo-gateway"
 import { NotificationBanner } from "./notification-banner.js"
 import { DialogKiloNotifications } from "./dialog-kilo-notifications.js"
 import { News } from "./news.js"
@@ -21,7 +20,7 @@ export function KiloNews() {
   const dialog = useDialog()
   const kv = useKV()
 
-  const [notifications, setNotifications] = createSignal<KilocodeNotification[]>([])
+  const [notifications, setNotifications] = createSignal<Array<{ id: string; title: string; message: string; action?: { actionText: string; actionURL: string }; showIn?: string[] }>>([])
   const [fetched, setFetched] = createSignal(false)
   const isKiloConnected = createMemo(() => sync.data.provider_next.connected.includes("kilo"))
   const unread = createMemo(() => News.unread(notifications(), kv.get(News.key, [])))

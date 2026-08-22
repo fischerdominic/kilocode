@@ -1,13 +1,13 @@
 // kilocode_change - new file
 import { Config } from "@/config/config"
 import { Auth } from "@/auth"
-import { ModelCache } from "./model-cache"
 import * as Core from "@opencode-ai/core/models-dev"
 import { Context, Effect, Layer } from "effect"
-import { AI_SDK_PROVIDERS, KILO_OPENROUTER_BASE, PROMPTS } from "@kilocode/kilo-gateway"
 import { overlay } from "@/kilocode/anaconda-desktop/provider"
 import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 import { AppNodeBuilder } from "@opencode-ai/core/effect/app-node-builder" // kilocode_change
+
+const KILO_OPENROUTER_BASE = "https://openrouter.ai/api/v1"
 
 export const Model = Core.Model
 export type Model = Core.Model
@@ -33,14 +33,13 @@ function baseURL(url: string | undefined, org: string | undefined) {
   return `${base}/api/openrouter`
 }
 
-export const layer: Layer.Layer<Service, never, Core.Service | Config.Service | Auth.Service | ModelCache.Service> =
+export const layer: Layer.Layer<Service, never, Core.Service | Config.Service | Auth.Service> =
   Layer.effect(
     Service,
     Effect.gen(function* () {
       const core = yield* Core.Service
       const config = yield* Config.Service
       const auth = yield* Auth.Service
-      const cache = yield* ModelCache.Service
 
       const get = Effect.fn("ModelsDev.get")(function* () {
         const providers = overlay(yield* core.get())
@@ -53,21 +52,17 @@ export const layer: Layer.Layer<Service, never, Core.Service | Config.Service | 
         const allowed = (!enabled || enabled.has("kilo")) && !disabled.has("kilo")
         const apt = cfg.provider?.apertis?.options
         const aptURL = apt?.baseURL ?? "https://api.apertis.ai/v1"
-        const aptOpts = apt?.baseURL ? { baseURL: apt.baseURL } : {}
 
         const addApertis = Effect.fnUntraced(function* () {
           if (providers.apertis) return
-          const models = yield* cache.fetch("apertis", aptOpts).pipe(Effect.catch(() => Effect.succeed({})))
           providers.apertis = {
             id: "apertis",
             name: "Apertis",
             env: ["APERTIS_API_KEY"],
             api: aptURL,
             npm: "@ai-sdk/openai-compatible",
-            models,
+            models: {},
           }
-          if (Object.keys(models).length === 0)
-            yield* cache.refresh("apertis", aptOpts).pipe(Effect.ignore, Effect.forkDetach)
         })
 
         if (!allowed) {
@@ -75,25 +70,14 @@ export const layer: Layer.Layer<Service, never, Core.Service | Config.Service | 
           return providers
         }
 
-        const opts = cfg.provider?.kilo?.options
-        const info = yield* auth.get("kilo").pipe(Effect.catch(() => Effect.succeed(undefined)))
-        const org = opts?.kilocodeOrganizationId ?? (info?.type === "oauth" ? info.accountId : undefined)
-        const url = baseURL(opts?.baseURL, org)
-        const fetch = {
-          ...(url ? { baseURL: url } : {}),
-          ...(org ? { kilocodeOrganizationId: org } : {}),
-        }
-        const fetched = yield* cache.fetch("kilo", fetch).pipe(Effect.catch(() => Effect.succeed({})))
-        const models = Object.keys(fetched).length > 0 ? fetched : (fallback?.models ?? {})
         providers.kilo = {
           id: "kilo",
           name: "Kilo Gateway",
           env: ["KILO_API_KEY"],
           api: KILO_OPENROUTER_BASE.endsWith("/") ? KILO_OPENROUTER_BASE : `${KILO_OPENROUTER_BASE}/`,
           npm: "@kilocode/kilo-gateway",
-          models,
+          models: fallback?.models ?? {},
         }
-        if (Object.keys(fetched).length === 0) yield* cache.refresh("kilo", fetch).pipe(Effect.ignore, Effect.forkDetach)
         yield* addApertis()
         return providers
       })
@@ -107,8 +91,7 @@ export const defaultLayer: Layer.Layer<Service> = Layer.suspend(() => AppNodeBui
 export const node = LayerNode.make({
   service: Service,
   layer,
-  deps: [Core.node, Config.node, Auth.node, ModelCache.node],
+  deps: [Core.node, Config.node, Auth.node],
 })
 
-export { AI_SDK_PROVIDERS, PROMPTS }
 export * as ModelsDev from "./models"

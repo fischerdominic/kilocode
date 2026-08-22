@@ -13,7 +13,6 @@ import { useToast } from "@tui/ui/toast"
 import { DialogAlert } from "@tui/ui/dialog-alert"
 import { DialogConfirm } from "@tui/ui/dialog-confirm"
 import { reconcile } from "solid-js/store"
-import type { Organization } from "@kilocode/kilo-gateway"
 import type { ClawStatus } from "./claw/types.js"
 import { DialogKiloTeamSelect } from "./components/dialog-kilo-team-select.js"
 import { DialogKiloProfile } from "./components/dialog-kilo-profile.js"
@@ -301,7 +300,7 @@ export function registerKiloCommands(useSDK: () => UseSDK) {
 
                     // Show success toast
                     const teamName = orgId
-                      ? profile.organizations!.find((o: Organization) => o.id === orgId)?.name
+                      ? profile.organizations!.find((o) => o.id === orgId)?.name
                       : "Personal"
 
                     toast.show({

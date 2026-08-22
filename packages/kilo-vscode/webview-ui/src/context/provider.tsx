@@ -1,6 +1,6 @@
 /**
  * Provider/model context
- * Manages available providers, models, and the global default selection.
+ * Manages custom provider state only — built-in provider catalog has been removed.
  * Selection is now per-session — see session.tsx.
  */
 
@@ -9,8 +9,7 @@ import type { ParentComponent, Accessor } from "solid-js"
 import { useVSCode } from "./vscode"
 import type { Provider, ProviderModel, ModelSelection, ExtensionMessage, ProviderAuthState } from "../types/messages"
 import type { ProviderAuthMethod } from "@kilocode/sdk/v2/client"
-import { flattenModels, findModel as _findModel, isModelValid as isValid } from "./provider-utils"
-import { KILO_AUTO } from "../../../src/shared/provider-model"
+import { findModel as _findModel, isModelValid as isValid } from "./provider-utils"
 
 export type EnrichedModel = ProviderModel & { providerID: string; providerName: string }
 
@@ -34,11 +33,25 @@ export const ProviderProvider: ParentComponent = (props) => {
   const [providers, setProviders] = createSignal<Record<string, Provider>>({})
   const [connected, setConnected] = createSignal<string[]>([])
   const [defaults, setDefaults] = createSignal<Record<string, string>>({})
-  const [defaultSelection, setDefaultSelection] = createSignal<ModelSelection>(KILO_AUTO)
+  const [defaultSelection, setDefaultSelection] = createSignal<ModelSelection>({ providerID: "", modelID: "" })
   const [authMethods, setAuthMethods] = createSignal<Record<string, ProviderAuthMethod[]>>({})
   const [authStates, setAuthStates] = createSignal<Record<string, ProviderAuthState>>({})
 
-  const models = createMemo<EnrichedModel[]>(() => flattenModels(providers()))
+  const models = createMemo<EnrichedModel[]>(() => {
+    const result: EnrichedModel[] = []
+    for (const providerID of Object.keys(providers())) {
+      const provider = providers()[providerID]!
+      for (const modelID of Object.keys(provider.models)) {
+        result.push({
+          ...provider.models[modelID]!,
+          id: modelID,
+          providerID,
+          providerName: provider.name,
+        })
+      }
+    }
+    return result
+  })
 
   function findModel(selection: ModelSelection | null): EnrichedModel | undefined {
     return _findModel(models(), selection)
@@ -48,8 +61,6 @@ export const ProviderProvider: ParentComponent = (props) => {
     return isValid(providers(), connected(), selection)
   }
 
-  // Register handler immediately (not in onMount) so we never miss
-  // a providersLoaded message that arrives before the DOM mount.
   const unsubscribe = vscode.onMessage((message: ExtensionMessage) => {
     if (message.type !== "providersLoaded") {
       return
@@ -65,8 +76,6 @@ export const ProviderProvider: ParentComponent = (props) => {
 
   onCleanup(unsubscribe)
 
-  // Request providers immediately; if the extension's httpClient is not yet ready,
-  // extensionDataReady will fire once initialization completes and we retry once.
   vscode.postMessage({ type: "requestProviders" })
 
   const fallback = setTimeout(() => {

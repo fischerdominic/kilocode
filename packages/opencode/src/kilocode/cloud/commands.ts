@@ -1,7 +1,6 @@
 import { CliError, fail } from "@/cli/effect-cmd"
 import { Effect, Layer, Redacted } from "effect"
 import { CloudAuth } from "./auth"
-import { CloudCatalog } from "./catalog"
 import {
   CloudAgentSessionIdSchema,
   MessageIdSchema,
@@ -69,7 +68,6 @@ export namespace CloudCommands {
     if (error instanceof CliError) return error.message
     if (error instanceof CloudError) return error.message
     if (error instanceof CloudAuth.ResolutionError) return error.message
-    if (error instanceof CloudCatalog.CatalogError) return error.message
     if (error instanceof CloudDefaults.ResolutionError) return error.message
     if (error instanceof CloudRepository.InvalidRepositoryError) return error.message
     if (error instanceof CloudRepository.InvalidBranchError) return error.message
@@ -176,7 +174,7 @@ export namespace CloudCommands {
           ...(input.mode === undefined ? {} : { mode: input.mode }),
           ...(input.model === undefined ? {} : { model: input.model }),
           ...(input.orgID === undefined ? {} : { orgID: input.orgID }),
-        }).pipe(Effect.provide(Layer.mergeAll(CloudDefaults.modelStateLayer, CloudCatalog.layer({ env }))))
+        }).pipe(Effect.provide(Layer.mergeAll(CloudDefaults.modelStateLayer)))
         const repository = yield* CloudRepository.resolve({
           cwd: input.cwd ?? process.cwd(),
           ...(input.repo === undefined ? {} : { repo: input.repo }),

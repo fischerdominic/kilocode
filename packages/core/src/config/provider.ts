@@ -62,10 +62,19 @@ class Model extends Schema.Class<Model>("ConfigV2.Model")({
   limit: Limit.pipe(Schema.optional),
 }) {}
 
+// kilocode_change start - simplified api schema for OpenAI-compatible custom providers only (no AISDK package/npm field)
+class CustomApi extends Schema.Class<CustomApi>("ConfigV2.Provider.CustomApi")({
+  url: Schema.String.pipe(Schema.optional),
+  settings: Schema.Record(Schema.String, Schema.Unknown).pipe(Schema.optional),
+}) {}
+// kilocode_change end
+
 export class Info extends Schema.Class<Info>("ConfigV2.Provider")({
   name: Schema.String.pipe(Schema.optional),
   env: Schema.String.pipe(Schema.Array, Schema.optional),
-  api: ProviderV2.Api.pipe(Schema.optional),
+  // kilocode_change start - replaced ProviderV2.Api (AISDK+Native union) with CustomApi (OpenAI-compatible only)
+  api: CustomApi.pipe(Schema.optional),
+  // kilocode_change end
   request: Request.pipe(Schema.optional),
   models: Schema.Record(Schema.String, Model).pipe(Schema.optional),
 }) {}

@@ -9,13 +9,17 @@ import { useDialog } from "@tui/ui/dialog"
 import { useSync } from "@tui/context/sync"
 import { useToast } from "@tui/ui/toast"
 import { DialogSelect } from "@tui/ui/dialog-select"
-import type { Organization } from "@kilocode/kilo-gateway"
-import { getOrganizationOptions, getDefaultOrganizationSelection } from "@kilocode/kilo-gateway/tui"
 
 // These types are OpenCode-internal and imported at runtime
 type UseSDK = any
 type UseTheme = any
 type DialogModel = any
+
+interface Organization {
+  id: string
+  name: string
+  role?: string
+}
 
 interface DialogKiloOrganizationProps {
   organizations: Organization[]
@@ -33,11 +37,12 @@ export function DialogKiloOrganization(props: DialogKiloOrganizationProps) {
   const sdk = props.useSDK()
   const toast = useToast()
 
-  // Get formatted options with current markers
-  const options = getOrganizationOptions(props.organizations, undefined, props.hasPersonalAccount !== false)
+  const options = props.organizations.map((org) => ({
+    value: org.id,
+    title: org.name,
+  }))
 
-  // Pre-select first organization (user requirement)
-  const defaultSelection = getDefaultOrganizationSelection(props.organizations)
+  const defaultSelection = props.organizations[0]?.id
 
   return (
     <DialogSelect

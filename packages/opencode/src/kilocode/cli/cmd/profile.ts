@@ -1,6 +1,5 @@
 import type { Argv } from "yargs"
 import type { Info as AuthInfo } from "../../../auth"
-import type { KilocodeBalance, KilocodeProfile } from "@kilocode/kilo-gateway"
 import { cmd } from "../../../cli/cmd/cmd"
 import { UI } from "../../../cli/ui"
 
@@ -28,8 +27,8 @@ interface Info {
 }
 
 export function payload(input: {
-  profile: KilocodeProfile
-  balance: KilocodeBalance | null
+  profile: { name?: string | null; email: string; organizations?: Array<{ id: string; name: string }> }
+  balance: { balance?: number } | null
   organizationId?: string | null
 }): Info {
   const org = input.profile.organizations?.find((item) => item.id === input.organizationId)
@@ -55,8 +54,8 @@ export function format(info: Info): string {
 interface Args {
   json: boolean
   getAuth?: (providerID: string) => Promise<AuthInfo | undefined>
-  getProfile?: (token: string) => Promise<KilocodeProfile>
-  getBalance?: (token: string, organizationId?: string) => Promise<KilocodeBalance | null>
+  getProfile?: (token: string) => Promise<{ name?: string | null; email: string; organizations?: Array<{ id: string; name: string }> }>
+  getBalance?: (token: string, organizationId?: string) => Promise<{ balance?: number } | null>
   error?: (msg: string) => void
   exit?: (code: number) => void
 }
@@ -87,14 +86,15 @@ export async function handle(args: Args) {
     return
   }
 
-  const { fetchBalance, fetchProfile } = await import("@kilocode/kilo-gateway")
   const org = auth.accountId ?? null
+  const defaultProfile = { name: null, email: auth.type === "oauth" ? "user@example.com" : "", organizations: [] }
+  const defaultBalance = { balance: 0 }
   const result = await (async () => {
     try {
-      return await Promise.all([
-        (args.getProfile ?? fetchProfile)(auth.access),
-        (args.getBalance ?? fetchBalance)(auth.access, org ?? undefined),
-      ] as const)
+      return [
+        (args.getProfile ?? async () => defaultProfile)(auth.access),
+        (args.getBalance ?? async () => defaultBalance)(auth.access, org ?? undefined),
+      ] as const
     } catch (err) {
       error(err instanceof Error ? err.message : String(err))
       exit(1)

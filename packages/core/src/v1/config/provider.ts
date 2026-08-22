@@ -87,44 +87,23 @@ export const Model = Schema.Struct({
 })
 
 export const Info = Schema.Struct({
-  api: Schema.optional(Schema.String),
+  api: Schema.optional(Schema.String), // kilocode_change - base URL for OpenAI-compatible custom providers
   name: Schema.optional(Schema.String),
   env: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
-  id: Schema.optional(Schema.String),
-  npm: Schema.optional(Schema.String),
-  whitelist: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
-  blacklist: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
+  // kilocode_change start - removed id, npm, whitelist, blacklist (built-in provider management fields)
+  // kilocode_change end
   options: Schema.optional(
     Schema.StructWithRest(
       Schema.Struct({
         apiKey: Schema.optional(Schema.String),
         baseURL: Schema.optional(Schema.String),
-        enterpriseUrl: Schema.optional(Schema.String).annotate({
-          description: "GitHub Enterprise URL for copilot authentication",
-        }),
-        setCacheKey: Schema.optional(Schema.Boolean).annotate({
-          description: "Enable promptCacheKey for this provider (default false)",
-        }),
+        // kilocode_change start - simplified to OpenAI-compatible options only
         timeout: Schema.optional(
           Schema.Union([PositiveInt, Schema.Literal(false)]).annotate({
             description: "Timeout in milliseconds for full requests to this provider. Set to false to disable timeout.",
           }),
-        ).annotate({
-          description: "Timeout in milliseconds for full requests to this provider. Set to false to disable timeout.",
-        }),
-        headerTimeout: Schema.optional(
-          Schema.Union([PositiveInt, Schema.Literal(false)]).annotate({
-            description:
-              "Timeout in milliseconds to wait for response headers. Provider integrations may set defaults. Set to false to disable timeout.",
-          }),
-        ).annotate({
-          description:
-            "Timeout in milliseconds to wait for response headers. Provider integrations may set defaults. Set to false to disable timeout.",
-        }),
-        chunkTimeout: Schema.optional(PositiveInt).annotate({
-          description:
-            "Timeout in milliseconds between streamed SSE chunks for this provider. If no chunk arrives within this window, the request is aborted.",
-        }),
+        ),
+        // kilocode_change end
       }),
       [Schema.Record(Schema.String, Schema.Any)],
     ),

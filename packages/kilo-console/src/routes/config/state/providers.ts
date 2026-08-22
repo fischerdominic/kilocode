@@ -1,10 +1,12 @@
 import { createMemo, createSignal } from "solid-js"
-import type { Provider, ProviderAuthAuthorization, ProviderAuthMethod, ProviderConfig } from "@kilocode/sdk/v2/client"
+import type { Provider, ProviderAuthMethod, ProviderConfig } from "@kilocode/sdk/v2/client" // kilocode_change
 import { useConfig } from "../../../context/config"
 import { clean, csv, errMsg } from "../../../shared/utils"
-import { authorizeProvider, completeProvider, connectProvider } from "../../../client"
+import { connectProvider } from "../../../client" // kilocode_change
 
-const priority = ["kilo", "anthropic", "github-copilot", "openai", "google", "openrouter", "vercel"]
+// kilocode_change start
+// const priority = ["kilo", "anthropic", "github-copilot", "openai", "google", "openrouter", "vercel"]
+// kilocode_change end
 const pattern = /^[a-z0-9][a-z0-9-_]*$/
 
 type Dict = Record<string, unknown>
@@ -22,17 +24,8 @@ export type ConfiguredProvider = {
   editable?: boolean
 }
 
-function rank(id: string) {
-  const index = priority.indexOf(id.toLowerCase())
-  return index >= 0 ? index : priority.length
-}
-
 function sort<T extends { id: string; name: string }>(items: T[]) {
-  return items.slice().sort((a, b) => {
-    const diff = rank(a.id) - rank(b.id)
-    if (diff !== 0) return diff
-    return a.name.localeCompare(b.name)
-  })
+  return items.slice().sort((a, b) => a.name.localeCompare(b.name))
 }
 
 function json(input: unknown) {
@@ -89,13 +82,9 @@ export function useProviderSettings() {
   const [models, setModels] = createSignal("")
   const [pending, setPending] = createSignal<ConfiguredProvider | undefined>()
   const [methodIndex, setMethodIndex] = createSignal<number | undefined>()
-  const [authorization, setAuthorization] = createSignal<ProviderAuthAuthorization | undefined>()
-  const [phase, setPhase] = createSignal<"authorizing" | "connecting" | undefined>()
-  const [authKey, setAuthKey] = createSignal("")
-  const [authCode, setAuthCode] = createSignal("")
-  const [fields, setFields] = createSignal<Record<string, string>>({})
-  const [authError, setAuthError] = createSignal("")
-  const [authField, setAuthField] = createSignal("")
+  const [authKey, setAuthKey] = createSignal("") // kilocode_change
+  const [authError, setAuthError] = createSignal("") // kilocode_change
+  const [authField, setAuthField] = createSignal("") // kilocode_change
 
   const configured = createMemo<ConfiguredProvider[]>(() => {
     const data = snap()
@@ -165,21 +154,10 @@ export function useProviderSettings() {
   })
   const target = createMemo(() => available().find((provider) => provider.id === choice()) ?? available()[0])
 
-  const methods = createMemo(() => snap()?.authMethods[id()] ?? [])
-  const method = createMemo(() => {
-    const index = methodIndex()
-    return index === undefined ? undefined : methods()[index]
-  })
-  const prompts = createMemo(() => method()?.prompts?.filter((prompt) => shown(prompt, fields())) ?? [])
-  const auth = createMemo(() => methods().length > 0)
+  const auth = createMemo(() => snap()?.authMethods[id()]?.some((m) => m.type === "api") ?? false) // kilocode_change
 
   function resetAuth() {
-    setMethodIndex(undefined)
-    setAuthorization(undefined)
-    setPhase(undefined)
     setAuthKey("")
-    setAuthCode("")
-    setFields({})
     setAuthError("")
     setAuthField("")
   }

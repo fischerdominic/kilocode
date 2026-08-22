@@ -1,5 +1,4 @@
-import { fetchKiloEmbeddingModelCatalog, resolveKiloGatewayBaseUrl } from "@kilocode/kilo-gateway"
-import type { Config, IndexingConfig, KiloEmbeddingModelCatalog } from "@kilocode/sdk/v2"
+import type { Config, IndexingConfig } from "@kilocode/sdk/v2"
 import * as Log from "@opencode-ai/core/util/log"
 import { createMemo, type Accessor } from "solid-js"
 
@@ -8,26 +7,12 @@ export type IndexingScope = "global" | "project"
 const log = Log.create({ service: "indexing-model-catalog" })
 
 export async function loadKiloEmbeddingModels(onError?: (message: string) => void) {
-  const endpoint = new URL("embedding-models", resolveKiloGatewayBaseUrl()).toString()
-  log.info("loading Kilo embedding model catalog", { endpoint })
-  const catalog = await fetchKiloEmbeddingModelCatalog({
-    onError: (issue) => {
-      log.warn("failed to load Kilo embedding model catalog", {
-        code: issue.code,
-        status: issue.status,
-        message: issue.message,
-      })
-      onError?.(issue.message)
-    },
-  })
-  log.info("loaded Kilo embedding model catalog", {
-    models: catalog.models.length,
-    defaultModel: catalog.defaultModel || undefined,
-  })
-  return catalog
+  log.info("loading Kilo embedding model catalog", { endpoint: "disabled" })
+  onError?.("Embedding model catalog is not available")
+  return { models: [], defaultModel: "", aliases: {} as Record<string, string> }
 }
 
-export function kiloModelOptions(catalog?: KiloEmbeddingModelCatalog) {
+export function kiloModelOptions(catalog?: { models: Array<{ id: string; name: string; dimension: number; note?: string; scoreThreshold?: number }> }) {
   if (!catalog) return [{ value: "", title: "Loading supported models..." }]
   if (catalog.models.length === 0) return [{ value: "", title: "No supported models available" }]
   return catalog.models.map((model) => ({
@@ -36,11 +21,11 @@ export function kiloModelOptions(catalog?: KiloEmbeddingModelCatalog) {
   }))
 }
 
-export function currentKiloModel(catalog: KiloEmbeddingModelCatalog | undefined, model?: string | null) {
+export function currentKiloModel(catalog: { models: Array<{ id: string; name: string; dimension: number; note?: string; scoreThreshold?: number }> | undefined, defaultModel: string, aliases: Record<string, string> } | undefined, model?: string | null) {
   if (!catalog) return undefined
   const fallback = catalog.aliases[catalog.defaultModel] ?? catalog.defaultModel
   const current = model ? (catalog.aliases[model] ?? model) : fallback
-  return catalog.models.some((item) => item.id === current) ? current : fallback
+  return catalog.models?.some((item) => item.id === current) ? current : fallback
 }
 
 export function indexingScopeConfig(

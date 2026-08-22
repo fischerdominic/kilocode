@@ -80,10 +80,6 @@ export namespace KiloCli {
     const { KiloLog } = await import("@/kilocode/log")
     await KiloLog.init()
 
-    const gateway = await import("@kilocode/kilo-gateway")
-    if (!process.env[gateway.ENV_FEATURE])
-      process.env[gateway.ENV_FEATURE] = process.argv.includes("serve") ? "unknown" : "cli"
-    if (!process.env[gateway.ENV_VERSION]) process.env[gateway.ENV_VERSION] = InstallationVersion
     process.env.KILO = "1"
 
     // Must run before AppRuntime initializes the SQLite database, or the marker
@@ -104,13 +100,6 @@ export namespace KiloCli {
     })
 
     const { Auth } = await import("@/auth")
-    const { migrateLegacyKiloAuth } = gateway
-
-    // Migrate legacy Kilo CLI auth (~/.kilocode/cli/config.json) into auth.json if present.
-    await migrateLegacyKiloAuth(
-      async () => (await AppRuntime.runPromise(Auth.Service.use((s) => s.get("kilo")))) !== undefined,
-      async (auth) => AppRuntime.runPromise(Auth.Service.use((s) => s.set("kilo", auth))),
-    )
 
     const auth = await AppRuntime.runPromise(Auth.Service.use((s) => s.get("kilo")))
     if (auth) {

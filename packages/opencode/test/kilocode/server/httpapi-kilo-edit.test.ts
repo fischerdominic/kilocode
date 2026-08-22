@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test"
 import { ConfigProvider, Layer } from "effect"
 import { HttpRouter } from "effect/unstable/http"
-import { HEADER_FEATURE, HEADER_ORGANIZATIONID } from "@kilocode/kilo-gateway"
 import * as Log from "@opencode-ai/core/util/log"
+
+const HEADER_FEATURE = "x-kilocode-feature"
+const HEADER_ORGANIZATIONID = "x-kilocode-organizationid"
+
 import { KiloGatewayPaths } from "../../../src/kilocode/server/httpapi/groups/kilo-gateway"
 import * as HttpApiServer from "../../../src/server/routes/instance/httpapi/server"
 import { resetDatabase } from "../../fixture/db"

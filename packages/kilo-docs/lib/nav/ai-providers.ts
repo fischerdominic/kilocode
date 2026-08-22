@@ -9,25 +9,8 @@ export const AiProvidersNav: NavSection[] = [
     ],
   },
   {
-    title: "AI Labs",
-    links: [
-      { href: "/ai-providers/anthropic", children: "Anthropic" },
-      { href: "/ai-providers/openai", children: "OpenAI" },
-      {
-        href: "/ai-providers/openai-chatgpt-plus-pro",
-        children: "ChatGPT Plus/Pro",
-      },
-      { href: "/ai-providers/gemini", children: "Google Gemini" },
-      { href: "/ai-providers/poolside", children: "Poolside" },
-      { href: "/ai-providers/mistral", children: "Mistral AI" },
-      { href: "/ai-providers/deepseek", children: "DeepSeek" },
-      { href: "/ai-providers/xai", children: "xAI (Grok)" },
-    ],
-  },
-  {
     title: "AI Gateways",
     links: [
-      { href: "/ai-providers/openrouter", children: "OpenRouter" },
       { href: "/ai-providers/requesty", children: "Requesty" },
       { href: "/ai-providers/daoxe", children: "DaoXE" },
       { href: "/ai-providers/unbound", children: "Unbound" },
@@ -41,8 +24,6 @@ export const AiProvidersNav: NavSection[] = [
   {
     title: "Cloud Providers",
     links: [
-      { href: "/ai-providers/vertex", children: "Google Vertex AI" },
-      { href: "/ai-providers/bedrock", children: "AWS Bedrock" },
       { href: "/ai-providers/alibaba", children: "Alibaba Cloud" },
       { href: "/ai-providers/cloudflare", children: "Cloudflare" },
       { href: "/ai-providers/groq", children: "Groq" },
@@ -60,10 +41,6 @@ export const AiProvidersNav: NavSection[] = [
       {
         href: "/ai-providers/anaconda-desktop",
         children: "Anaconda Desktop",
-      },
-      {
-        href: "/ai-providers/openai-compatible",
-        children: "OpenAI Compatible",
       },
     ],
   },

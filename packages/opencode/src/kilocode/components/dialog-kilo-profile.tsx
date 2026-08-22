@@ -9,7 +9,16 @@ import { useTheme } from "@tui/context/theme"
 import { useDialog } from "@tui/ui/dialog"
 import { Link } from "@tui/ui/link"
 import { TextAttributes } from "@opentui/core"
-import type { KilocodeProfile, KilocodeBalance } from "@kilocode/kilo-gateway"
+
+interface KilocodeProfile {
+  name?: string | null
+  email: string
+  organizations?: Array<{ id: string; name: string; role: string }>
+}
+
+interface KilocodeBalance {
+  balance?: number | null
+}
 
 interface DialogKiloProfileProps {
   profile: KilocodeProfile

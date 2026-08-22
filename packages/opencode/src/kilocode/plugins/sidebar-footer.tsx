@@ -2,7 +2,6 @@ import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@kilocode/plugin/
 import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js"
 import { Global } from "@opencode-ai/core/global"
 import * as Log from "@opencode-ai/core/util/log"
-import type { KiloPassState } from "@kilocode/kilo-gateway"
 import type { Message } from "@kilocode/sdk/v2"
 import { onBalanceRefresh } from "../balance-refresh"
 import { REDACTED_BALANCE } from "../pii"
@@ -21,7 +20,7 @@ const usd = new Intl.NumberFormat("en-US", {
 type State = {
   balance?: number
   scope: ReturnType<typeof scope>
-  pass: KiloPassState | null
+  pass: { currentPeriodBaseCreditsUsd: number; currentPeriodUsageUsd: number } | null
 }
 
 export function format(value: number) {
@@ -47,7 +46,7 @@ export function creditLabel(value: ReturnType<typeof scope>, masked = false) {
 const short = (value: number) => "$" + Math.round(value)
 
 // Pass credits are part of the personal balance, so we show this period's usage against the base allotment.
-export function passLine(pass: KiloPassState) {
+export function passLine(pass: { currentPeriodUsageUsd: number; currentPeriodBaseCreditsUsd: number }) {
   return `${short(pass.currentPeriodUsageUsd)} / ${short(pass.currentPeriodBaseCreditsUsd)}`
 }
 

@@ -15,7 +15,6 @@ import { SessionTable } from "@opencode-ai/core/session/sql"
 import * as Log from "@opencode-ai/core/util/log"
 import type { ProviderMetadata, Usage } from "@opencode-ai/llm"
 import type { Provider } from "@/provider/provider"
-import { ENV_FEATURE } from "@kilocode/kilo-gateway"
 import { existsSync } from "fs"
 import path from "path"
 import { iife } from "@/util/iife"
@@ -124,7 +123,7 @@ export namespace KiloSession {
   export function attribution(id: string): { rootID: string; feature?: string } {
     const rootID = resolveRoot(id)
     const platform = resolvePlatform(rootID) ?? process.env["KILO_PLATFORM"]
-    const feature = featureForPlatform(platform) ?? process.env[ENV_FEATURE]
+    const feature = featureForPlatform(platform) ?? process.env["KILO_FEATURE"]
     return { rootID, ...(feature ? { feature } : {}) }
   }
 

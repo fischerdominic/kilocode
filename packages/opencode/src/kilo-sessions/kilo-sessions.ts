@@ -18,7 +18,6 @@ import { clearInFlightCache, withInFlightCache } from "@/kilo-sessions/inflight-
 import type * as SDK from "@kilocode/sdk/v2"
 import z from "zod"
 import { Context, Effect, Layer, Schema } from "effect"
-import { KILO_API_BASE } from "@kilocode/kilo-gateway"
 import { Config } from "@/config/config"
 import { InstanceState } from "@/effect/instance-state"
 import { Instance } from "@/kilocode/instance"
@@ -138,7 +137,7 @@ export namespace KiloSessions {
     }
 
     return withInFlightCache(tokenValidKey, 15 * 60_000, async () => {
-      const response = await fetch(`${KILO_API_BASE}/api/user`, {
+      const response = await fetch("https://api.kilo.ai/api/user", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

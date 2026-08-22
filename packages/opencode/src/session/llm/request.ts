@@ -17,13 +17,6 @@ import { mergeDeep } from "remeda"
 import { DEFAULT_HEADERS } from "@/kilocode/const" // kilocode_change
 // kilocode_change start
 import { getKiloProjectId } from "@/kilocode/project-id"
-import {
-  HEADER_FEATURE,
-  HEADER_PARENT_TASKID,
-  HEADER_PROJECTID,
-  HEADER_MACHINEID,
-  HEADER_TASKID,
-} from "@kilocode/kilo-gateway"
 import { Identity } from "@kilocode/kilo-telemetry"
 import { KiloSession } from "@/kilocode/session"
 import { stripInternalOptions } from "@/kilocode/agent/options"
@@ -187,9 +180,6 @@ export const prepare = Effect.fn("LLMRequestPrep.prepare")(function* (input: Pre
     : Effect.succeed(undefined)
   const parent = input.parentSessionID ?? KiloSession.resolveParent(input.sessionID)
   // kilocode_change end
-  // kilocode_change start - attribute Kilo gateway usage to the root product session
-  const attr = KiloSession.attribution(input.sessionID)
-  // kilocode_change end
 
   const tools = resolveTools(input)
   // Codex parity: OpenAI Responses-family providers hardcode `strict: false`
@@ -246,14 +236,7 @@ export const prepare = Effect.fn("LLMRequestPrep.prepare")(function* (input: Pre
             "User-Agent": USER_AGENT,
             ...(input.model.providerID !== "anthropic" ? DEFAULT_HEADERS : undefined), // kilocode_change
           }),
-      // kilocode_change start - headers for kilo provider
-      ...(isKilo && input.agent.name ? { "x-kilocode-mode": input.agent.name.toLowerCase() } : {}),
-      ...(isKilo && kiloProjectId ? { [HEADER_PROJECTID]: kiloProjectId } : {}),
-      ...(isKilo && machineId ? { [HEADER_MACHINEID]: machineId } : {}),
-      ...(isKilo ? { [HEADER_TASKID]: input.sessionID } : {}),
-      ...(isKilo && parent ? { [HEADER_PARENT_TASKID]: parent } : {}),
-      ...(isKilo && attr.feature ? { [HEADER_FEATURE]: attr.feature } : {}),
-      // kilocode_change end
+      ...(isKilo ? { "x-kilocode-mode": input.agent.name.toLowerCase() } : {}),
       ...input.model.headers,
       ...headers,
     },

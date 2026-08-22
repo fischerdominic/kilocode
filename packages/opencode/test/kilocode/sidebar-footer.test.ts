@@ -1,8 +1,14 @@
 import { describe, expect, test } from "bun:test"
-import type { KiloPassState } from "@kilocode/kilo-gateway"
 import type { Message } from "@kilocode/sdk/v2"
 
 import { billable, creditLabel, format, passLine, resetLabel, scope } from "../../src/kilocode/plugins/sidebar-footer"
+
+interface KiloPassState {
+  currentPeriodBaseCreditsUsd: number
+  currentPeriodUsageUsd: number
+  currentPeriodBonusCreditsUsd: number
+  nextBillingAt?: string | null
+}
 
 const kiloPass = {
   currentPeriodBaseCreditsUsd: 199,

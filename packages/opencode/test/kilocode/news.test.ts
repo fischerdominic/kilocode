@@ -1,6 +1,13 @@
 import { describe, expect, test } from "bun:test"
-import type { KilocodeNotification } from "@kilocode/kilo-gateway"
 import { News } from "../../src/kilocode/components/news"
+
+interface KilocodeNotification {
+  id: string
+  title: string
+  message: string
+  action?: { actionText: string; actionURL: string }
+  showIn?: string[]
+}
 
 const item = (id: string): KilocodeNotification => ({
   id,

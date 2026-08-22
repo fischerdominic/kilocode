@@ -14,9 +14,8 @@ import { Storage } from "@/storage/storage"
 import { Snapshot } from "@/snapshot"
 import { Plugin } from "@/plugin"
 import { ModelsDev } from "@opencode-ai/core/models-dev"
-import { ModelCache } from "@/provider/model-cache" // kilocode_change
 import { Provider } from "@/provider/provider"
-import { ProviderAuth } from "@/provider/auth"
+// kilocode_change - removed ProviderAuth import
 import { Agent } from "@/agent/agent"
 import { Skill } from "@/skill"
 import { Discovery } from "@/skill/discovery"
@@ -69,7 +68,7 @@ import { PtyTicket } from "@opencode-ai/core/pty/ticket" // kilocode_change
 
 // kilocode_change start - retain Kilo runtime services in the upstream node graph
 const memory = LayerNode.make({ service: MemoryService.Service, layer: MemoryService.layer, deps: [] })
-const kilo = LayerNode.group([Credential.node, ModelCache.node, AgentManager.node, Notebook.node, memory])
+const kilo = LayerNode.group([Credential.node, AgentManager.node, Notebook.node, memory])
 // kilocode_change end
 
 export const AppLayer = AppNodeBuilderV1.build(
@@ -87,7 +86,7 @@ export const AppLayer = AppNodeBuilderV1.build(
     Plugin.node,
     ModelsDev.node,
     Provider.node,
-    ProviderAuth.node,
+    // kilocode_change - removed ProviderAuth.node
     Agent.node,
     Skill.node,
     Discovery.node,

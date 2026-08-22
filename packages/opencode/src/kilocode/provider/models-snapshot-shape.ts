@@ -1,3 +1,5 @@
+// Potentially unused after built-in provider removal. Kept for future use
+// validating custom provider model configs.
 export type ModelsSnapshot = Record<string, unknown>
 
 export interface ModelsSnapshotStats {

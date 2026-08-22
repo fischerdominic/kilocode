@@ -6,7 +6,6 @@ import type { Config } from "../config/config"
 import type { ConfigAgentV1 } from "@opencode-ai/core/v1/config/agent"
 import { ConfigPermissionV1 as ConfigPermission } from "@opencode-ai/core/v1/config/permission"
 import { KilocodePaths } from "./paths"
-import type { OrganizationMode } from "@kilocode/kilo-gateway"
 
 export namespace ModesMigrator {
   // Kilocode mode structure
@@ -91,12 +90,24 @@ export namespace ModesMigrator {
     }
   }
 
+  export interface OrganizationModeLike {
+    slug: string
+    name: string
+    config: {
+      roleDefinition?: string
+      customInstructions?: string
+      groups?: string[]
+      description?: string
+      whenToUse?: string
+    }
+  }
+
   /**
    * Convert a cloud OrganizationMode to a ConfigAgentV1.Info.
    * Unlike legacy convertMode(), this does NOT skip default slugs —
    * organization admins can intentionally override built-in agents.
    */
-  export function convertOrganizationMode(mode: OrganizationMode): ConfigAgentV1.Info {
+  export function convertOrganizationMode(mode: OrganizationModeLike): ConfigAgentV1.Info {
     const cfg = mode.config
     const prompt = [cfg.roleDefinition, cfg.customInstructions].filter(Boolean).join("\n\n")
     const groups = cfg.groups ?? []
@@ -121,7 +132,7 @@ export namespace ModesMigrator {
    * Convert an array of cloud OrganizationModes to a ConfigAgentV1.Info record
    * keyed by slug. All modes are included (no default-slug filtering).
    */
-  export function convertOrganizationModes(modes: OrganizationMode[]): Record<string, ConfigAgentV1.Info> {
+  export function convertOrganizationModes(modes: OrganizationModeLike[]): Record<string, ConfigAgentV1.Info> {
     const result: Record<string, ConfigAgentV1.Info> = {}
     for (const mode of modes) {
       result[mode.slug] = convertOrganizationMode(mode)

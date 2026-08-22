@@ -6,7 +6,6 @@ import { OAUTH_DUMMY_KEY } from "../../auth"
 import os from "os"
 import { setTimeout as sleep } from "node:timers/promises"
 import { createServer } from "http"
-import { refreshCodexAuth } from "@/kilocode/provider/codex-refresh" // kilocode_change
 import { OpenAIWebSocketPool } from "./ws-pool"
 
 const log = Log.create({ service: "plugin.codex" }) // kilocode_change
@@ -476,22 +475,14 @@ export async function CodexAuthPlugin(input: PluginInput, options: CodexAuthPlug
             if (!currentAuth.access || currentAuth.expires < Date.now()) {
               if (!refreshPromise) {
                 log.info("refreshing codex access token")
-                // kilocode_change start
-                refreshPromise = refreshCodexAuth({
-                  input,
-                  getAuth,
-                  auth: currentAuth,
-                  refresh: (token, signal) => refreshAccessToken(token, issuer, signal),
-                  account: extractAccountId,
-                })
-                  .then((auth) => ({
-                    access: auth.access,
-                    accountId: auth.accountId,
+                refreshPromise = refreshAccessToken(currentAuth.refresh, new AbortController().signal)
+                  .then((tokens) => ({
+                    access: tokens.access_token,
+                    accountId: extractAccountId(tokens),
                   }))
                   .finally(() => {
                     refreshPromise = undefined
                   })
-                // kilocode_change end
               }
 
               const refreshed = await refreshPromise

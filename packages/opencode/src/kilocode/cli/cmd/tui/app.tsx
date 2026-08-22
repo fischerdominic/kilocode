@@ -20,7 +20,6 @@ import { DialogSelect } from "@tui/ui/dialog-select"
 import { Link } from "@tui/ui/link"
 import { isKiloError, showKiloErrorToast } from "@/kilocode/kilo-errors"
 import { registerKiloCommands } from "@/kilocode/kilo-commands"
-import { initializeTUIDependencies } from "@kilocode/kilo-gateway/tui"
 import { DialogProcessList } from "@/kilocode/cli/cmd/tui/component/dialog-process-list"
 import { useIndexingWarnings } from "@/kilocode/cli/cmd/tui/indexing-warning"
 import { KiloTerminalTitle } from "./terminal-title"
@@ -240,21 +239,6 @@ export function init() {
   const dialog = useDialog()
 
   useIndexingWarnings()
-
-  // Inject TUI dependencies for kilo-gateway
-  initializeTUIDependencies({
-    useSync,
-    useDialog,
-    useToast,
-    useTheme,
-    useSDK,
-    DialogAlert,
-    DialogSelect,
-    Link,
-    Clipboard,
-    useKeyboard,
-    TextAttributes,
-  })
 
   // Register Kilo Gateway commands (profile, teams, kiloclaw, remote, etc.)
   registerKiloCommands(useSDK)
