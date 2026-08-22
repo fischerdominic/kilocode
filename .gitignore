@@ -46,8 +46,6 @@ UPCOMING_CHANGELOG.md
 logs/
 *.bun-build
 
-# Telemetry ID
-telemetry-id
 tsconfig.tsbuildinfo
 
 # Kilo

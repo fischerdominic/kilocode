@@ -293,7 +293,6 @@ function settings(keep: boolean, enabled: boolean) {
     "extensions.ignoreRecommendations": true,
     "security.workspace.trust.enabled": false,
     "task.allowAutomaticTasks": "off",
-    "telemetry.telemetryLevel": "off",
     "update.mode": "none",
     "workbench.startupEditor": "none",
     "workbench.tips.enabled": false,

@@ -5170,7 +5170,6 @@ export type Config = {
      * Speech-to-text transcription model ID to use for voice input
      */
     speech_to_text_model?: string | null
-    openTelemetry?: boolean | null | null
     /**
      * Tools that should only be available to primary agents.
      */
@@ -5584,7 +5583,6 @@ export type Config1 = {
      * Speech-to-text transcription model ID to use for voice input
      */
     speech_to_text_model?: string | null
-    openTelemetry?: boolean | null | null
     /**
      * Tools that should only be available to primary agents.
      */
@@ -6001,7 +5999,6 @@ export type Config2 = {
      * Speech-to-text transcription model ID to use for voice input
      */
     speech_to_text_model?: string | null
-    openTelemetry?: boolean | null | null
     /**
      * Tools that should only be available to primary agents.
      */
@@ -6418,7 +6415,6 @@ export type Config3 = {
      * Speech-to-text transcription model ID to use for voice input
      */
     speech_to_text_model?: string | null
-    openTelemetry?: boolean | null | null
     /**
      * Tools that should only be available to primary agents.
      */
@@ -6835,7 +6831,6 @@ export type Config4 = {
      * Speech-to-text transcription model ID to use for voice input
      */
     speech_to_text_model?: string | null
-    openTelemetry?: boolean | null | null
     /**
      * Tools that should only be available to primary agents.
      */
@@ -8773,7 +8768,6 @@ export type Config5 = {
      * Speech-to-text transcription model ID to use for voice input
      */
     speech_to_text_model?: string | null
-    openTelemetry?: boolean | null | null
     /**
      * Tools that should only be available to primary agents.
      */

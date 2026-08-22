@@ -93,7 +93,7 @@ export const TranscriptRowView: Component<TranscriptRowViewProps> = (props) => {
               forceOpenFile={props.activeSearchPartFile}
               highlight={props.highlight}
               feedback={{
-                enabled: feedback.telemetryEnabled(),
+                enabled: true,
                 rating: feedback.getRating(row().message.id),
                 onRate: (next) =>
                   feedback.rate({

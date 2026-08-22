@@ -81,7 +81,7 @@ This extension follows a **two-process architecture**: a VS Code extension host 
 | Autocomplete | Inline code completion | Optional: provider model completion |
 | Browser automation | Playwright-based | Playwright-based |
 | Marketplace | Extension marketplace | Not needed |
-| Telemetry | PostHog + OpenTelemetry | Not needed (or minimal) |
+| Telemetry | Removed — no analytics or tracing | Not needed |
 | i18n | 20+ languages | Not needed |
 | Memory/RAG | Project memory indexing | Not needed initially |
 | Code review | Diff viewer, PR integration | Not needed initially |

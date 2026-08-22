@@ -157,7 +157,7 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
                     message={amsg}
                     showAssistantCopyPartID={showAssistantCopyPartID()}
                     feedback={{
-                      enabled: feedback.telemetryEnabled(),
+                      enabled: true,
                       rating: feedback.getRating(amsg.id),
                       onRate: (next) =>
                         feedback.rate({

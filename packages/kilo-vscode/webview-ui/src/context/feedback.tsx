@@ -1,9 +1,8 @@
 /**
  * Feedback context
  *
- * Tracks per-message thumbs up/down ratings (in-memory only) and the VS Code
- * telemetry-enabled flag. The context exposes a single `rate()` callback that
- * updates local state and fires a telemetry event.
+ * Tracks per-message thumbs up/down ratings (in-memory only).
+ * The context exposes a single `rate()` callback that updates local state.
  *
  * State is not persisted — ratings reset on page reload / session switch.
  */
@@ -17,7 +16,6 @@ import { buildFeedbackProperties, type Rating, type RateInput } from "./feedback
 export type { Rating, RateInput } from "./feedback-payload"
 
 interface FeedbackContextValue {
-  telemetryEnabled: Accessor<boolean>
   getRating: (messageID: string) => Rating | undefined
   rate: (input: RateInput) => void
 }
@@ -26,14 +24,10 @@ const FeedbackContext = createContext<FeedbackContextValue>()
 
 export const FeedbackProvider: ParentComponent = (props) => {
   const vscode = useVSCode()
-  const [telemetryEnabled, setTelemetryEnabled] = createSignal(false)
   const [ratings, setRatings] = createSignal<Record<string, Rating>>({})
 
   const unsubscribe = vscode.onMessage((message: ExtensionMessage) => {
-    if (message.type !== "telemetryState") return
-    // Drop stored ratings if the user just revoked consent.
-    if (telemetryEnabled() && !message.enabled) setRatings({})
-    setTelemetryEnabled(message.enabled)
+    // No-op: telemetry has been removed
   })
 
   onCleanup(unsubscribe)
@@ -41,7 +35,6 @@ export const FeedbackProvider: ParentComponent = (props) => {
   const getRating = (messageID: string) => ratings()[messageID]
 
   const rate = (input: RateInput) => {
-    if (!telemetryEnabled()) return
     const prev = ratings()[input.messageID]
 
     setRatings((current) => {
@@ -52,7 +45,7 @@ export const FeedbackProvider: ParentComponent = (props) => {
     })
   }
 
-  const value: FeedbackContextValue = { telemetryEnabled, getRating, rate }
+  const value: FeedbackContextValue = { getRating, rate }
 
   return <FeedbackContext.Provider value={value}>{props.children}</FeedbackContext.Provider>
 }
