@@ -5,7 +5,6 @@ const root = path.join(__dirname, "..", "..")
 
 const files = [
   "src/kilocode/cli/cmd/tui/feature-plugins/home/tips.ts",
-  "src/cli/cmd/run.ts",
   "src/config/config.ts",
   "src/server/routes/instance/httpapi/public.ts",
   "src/mcp/index.ts",

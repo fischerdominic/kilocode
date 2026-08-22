@@ -1,6 +1,5 @@
 import { errorMessage } from "@/util/error"
 import { Log } from "@opencode-ai/core/util/log"
-import { UI } from "@/cli/ui"
 
 const log = Log.create({ service: "kilocode.cloud-session" })
 
@@ -72,5 +71,5 @@ function importErrorReason(error: unknown): string {
  */
 export function reportCloudImportError(err: unknown): void {
   log.debug("failed to import cloud session", { err })
-  UI.error(`Failed to import session from cloud: ${errorMessage(err)}`)
+  console.error(`Failed to import session from cloud: ${errorMessage(err)}`)
 }

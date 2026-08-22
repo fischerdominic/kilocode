@@ -86,8 +86,8 @@ async function cliInputs() {
     for (const dep of Object.keys(deps)) visit(dep)
   }
 
-  // The CLI build embeds the console even though it is not a package dependency.
-  for (const dir of [opencodeDir, join(packagesDir, "kilo-console")]) {
+  // The CLI build no longer bundles the console (kilo-console package removed).
+  for (const dir of [opencodeDir]) {
     const pkg: Package = await Bun.file(join(dir, "package.json")).json()
     if (!pkg.name) throw new Error(`Workspace package at ${dir} has no name`)
     visit(pkg.name)

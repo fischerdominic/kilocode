@@ -1,37 +1,10 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import { RunCommand } from "./cli/cmd/run"
-import { GenerateCommand } from "./cli/cmd/generate"
-// kilocode_change - upstream account console intentionally omitted; KiloCli registers `kilo console` for local settings
-import { ProvidersCommand } from "./cli/cmd/providers"
-import { AgentCommand } from "./cli/cmd/agent"
-import { UpgradeCommand } from "./cli/cmd/upgrade"
-import { UninstallCommand } from "./cli/cmd/uninstall"
-import { ModelsCommand } from "./cli/cmd/models"
-import { UI } from "./cli/ui"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
-import { FormatError } from "./cli/error"
 import { ServeCommand } from "./cli/cmd/serve"
-import { DebugCommand } from "./cli/cmd/debug"
-import { StatsCommand } from "./cli/cmd/stats"
-import { McpCommand } from "./cli/cmd/mcp"
-import { GithubCommand } from "./cli/cmd/github"
-import { ExportCommand } from "./cli/cmd/export"
-import { ImportCommand } from "./cli/cmd/import"
-import { AttachCommand } from "./cli/cmd/attach"
-import { TuiThreadCommand } from "./cli/cmd/tui"
-import { AcpCommand } from "./cli/cmd/acp"
-import { EOL } from "os"
-// kilocode_change - upstream web command intentionally omitted; Kilo does not ship an embedded web UI
-import { PrCommand } from "./cli/cmd/pr"
-import { SessionCommand } from "./cli/cmd/session"
-import { DbCommand } from "./cli/cmd/db"
-import { errorMessage } from "./util/error"
-import { PluginCommand } from "./cli/cmd/plug"
-import { Heap } from "./cli/heap"
+import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { ensureProcessMetadata } from "@opencode-ai/core/util/opencode-process" // kilocode_change
 import { KiloCli } from "@/kilocode/cli/setup" // kilocode_change
 import * as Log from "@opencode-ai/core/util/log" // kilocode_change
-import { ensureProcessMetadata } from "@opencode-ai/core/util/opencode-process" // kilocode_change
 
 const args = hideBin(process.argv)
 const metadata = ensureProcessMetadata("main") // kilocode_change - correlate logs across the CLI and TUI worker
@@ -39,12 +12,6 @@ const metadata = ensureProcessMetadata("main") // kilocode_change - correlate lo
 if (await KiloCli.runner()) process.exit() // kilocode_change - run persistent process guardians before CLI bootstrap
 
 function show(out: string) {
-  const text = out.trimStart()
-  if (!text.startsWith("opencode ")) {
-    process.stderr.write(UI.logo() + EOL + EOL)
-    process.stderr.write(text + EOL)
-    return
-  }
   process.stderr.write(out)
 }
 
@@ -76,8 +43,6 @@ let cli = yargs(args) // kilocode_change
       process.env.KILO_PURE = "1"
     }
 
-    Heap.start()
-
     process.env.AGENT = "1"
     process.env.OPENCODE = "1"
     process.env.KILO_PID = String(process.pid)
@@ -93,29 +58,7 @@ let cli = yargs(args) // kilocode_change
   })
   .usage("")
   .completion("completion", "generate shell completion script")
-  .command(AcpCommand)
-  .command(McpCommand)
-  .command(TuiThreadCommand)
-  .command(AttachCommand)
-  .command(RunCommand)
-  .command(GenerateCommand)
-  .command(DebugCommand)
-  // kilocode_change - upstream account console intentionally not registered; KiloConsole is added by KiloCli.register
-  .command(ProvidersCommand)
-  .command(AgentCommand)
-  .command(UpgradeCommand)
-  .command(UninstallCommand)
   .command(ServeCommand)
-  // kilocode_change - upstream web command intentionally omitted
-  .command(ModelsCommand)
-  .command(StatsCommand)
-  .command(ExportCommand)
-  .command(ImportCommand)
-  .command(GithubCommand)
-  .command(PrCommand)
-  .command(SessionCommand)
-  .command(PluginCommand)
-  .command(DbCommand)
 
 // kilocode_change start - register Kilo-specific commands after the upstream chain
 cli = KiloCli.register(cli)
@@ -146,12 +89,7 @@ try {
     await cli.parse()
   }
 } catch (e) {
-  const formatted = FormatError(e)
-  if (formatted) UI.error(formatted)
-  if (formatted === undefined) {
-    UI.error("Unexpected error" + EOL)
-    process.stderr.write(errorMessage(e) + EOL)
-  }
+  process.stderr.write(String(e) + "\n")
   process.exitCode = 1
 } finally {
   await KiloCli.shutdown() // kilocode_change - telemetry/session-export shutdown + instance disposal

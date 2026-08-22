@@ -1,17 +1,8 @@
 import type { Argv } from "yargs"
 import * as Log from "@opencode-ai/core/util/log"
-import { InstallationBuildKind, InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { KiloShutdown } from "@/kilocode/cli/shutdown"
 import { createHelpCommand } from "@/kilocode/help-command"
-import { KiloConsoleCommand } from "@/kilocode/cli/cmd/console"
-import { CloudCommand } from "@/kilocode/cli/cmd/cloud"
-import { RollCallCommand } from "@/kilocode/cli/cmd/roll-call"
-import { ProfileCommand } from "@/kilocode/cli/cmd/profile"
-import { DaemonCommand } from "@/kilocode/cli/cmd/daemon"
-import { DevSetupCommand, DevAliasCommand } from "@/kilocode/cli/dev-setup"
-import { RemoteCommand } from "@/cli/cmd/remote"
-import { ConfigCommand as ConfigCLICommand } from "@/cli/cmd/config"
-import { WorktreeCommand } from "@/kilocode/cli/cmd/worktree"
 
 const log = Log.create({ service: "kilocode.cli" })
 
@@ -49,16 +40,6 @@ export namespace KiloCli {
   // Register only the Kilo-specific commands. Upstream commands stay in index.ts's chain so
   // upstream merges that add or remove commands keep working without touching this file.
   export function register<T>(cli: Argv<T>): Argv<T> {
-    cli
-      .command(KiloConsoleCommand)
-      .command(CloudCommand)
-      .command(RollCallCommand)
-      .command(ProfileCommand)
-      .command(RemoteCommand)
-      .command(DaemonCommand)
-      .command(ConfigCLICommand)
-      .command(WorktreeCommand)
-    if (InstallationBuildKind !== "release") cli.command(DevSetupCommand).command(DevAliasCommand)
     // Safe self-reference: `cli` is a typed parameter and yargs `.command()` returns the same
     // instance, so the help command can resolve the fully-built root at handler time. This also
     // sidesteps the self-referential type error the old inline registration hit in index.ts.

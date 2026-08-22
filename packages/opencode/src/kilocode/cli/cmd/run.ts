@@ -1,5 +1,4 @@
 import { createKiloClient, type KiloClient } from "@kilocode/sdk/v2"
-import { UI } from "@/cli/ui"
 import { DaemonClient } from "@/kilocode/daemon/client"
 import { isBuiltinCommand, type BuiltinCommand } from "@/kilocode/session/builtin-commands"
 import { Provider } from "@/provider/provider"
@@ -17,7 +16,7 @@ export namespace KiloRun {
   export function validateBuiltin(args: { command?: BuiltinCommand; continue?: boolean; session?: string }) {
     if (!args.command) return
     if (args.continue || args.session) return
-    UI.error(`--command ${args.command} requires --continue or --session`)
+      console.error(`--command ${args.command} requires --continue or --session`)
     process.exit(1)
   }
 
@@ -31,7 +30,7 @@ export namespace KiloRun {
   ) {
     const selected = resolve(model, current)
     if (!selected) {
-      UI.error("No model specified and session has no model")
+      console.error("No model specified and session has no model")
       process.exit(1)
     }
 

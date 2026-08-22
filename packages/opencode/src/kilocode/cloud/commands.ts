@@ -1,4 +1,4 @@
-import { CliError, fail } from "@/cli/effect-cmd"
+import { CliError, fail } from "@/kilocode/cli/effect-cmd"
 import { Effect, Layer, Redacted } from "effect"
 import { CloudAuth } from "./auth"
 import {

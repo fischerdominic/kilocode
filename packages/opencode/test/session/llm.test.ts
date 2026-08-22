@@ -39,7 +39,6 @@ const openAIConfig = (model: ModelsDev.Provider["models"][string], baseURL: stri
       openai: {
         name: "OpenAI",
         env: ["OPENAI_API_KEY"],
-        npm: "@ai-sdk/openai",
         api: "https://api.openai.com/v1",
         models: {
           [model.id]: JSON.parse(JSON.stringify(configModel)) as ConfigModel,
@@ -47,6 +46,7 @@ const openAIConfig = (model: ModelsDev.Provider["models"][string], baseURL: stri
         options: {
           apiKey: "test-openai-key",
           baseURL,
+          
         },
       },
     },

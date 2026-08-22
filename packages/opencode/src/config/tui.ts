@@ -22,7 +22,6 @@ import { Filesystem } from "@/util/filesystem"
 import { ConfigVariable } from "@/config/variable"
 import { Npm } from "@opencode-ai/core/npm"
 import { KilocodeDefaultPlugins } from "@/kilocode/config/default-plugins" // kilocode_change
-import { FormatError, FormatUnknownError } from "@/cli/error"
 import { TuiConfig } from "@opencode-ai/tui/config"
 
 export const Info = TuiConfig.Info
@@ -134,7 +133,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
       Effect.catchCause((cause) =>
         Effect.logWarning("skipping invalid tui config", {
           path: configFilepath,
-          reason: FormatError(Cause.squash(cause)) ?? FormatUnknownError(Cause.squash(cause)),
+          reason: String(Cause.squash(cause)),
         }).pipe(Effect.as({} as Info)),
       ),
     )
@@ -150,7 +149,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
         Effect.catchCause((cause) =>
           Effect.logWarning("failed to read tui config", {
             path: filepath,
-            reason: FormatError(Cause.squash(cause)) ?? FormatUnknownError(Cause.squash(cause)),
+            reason: String(Cause.squash(cause)),
           }).pipe(Effect.as(undefined)),
         ),
       )
