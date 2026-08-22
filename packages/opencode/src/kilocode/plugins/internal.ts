@@ -1,4 +1,4 @@
-import type { BuiltinTuiPlugin } from "@opencode-ai/tui/builtins"
+import type { BuiltinTuiPlugin } from "@/plugin/tui"
 import HomeNews from "@/kilocode/plugins/home-news"
 import HomeOnboarding from "@/kilocode/plugins/home-onboarding"
 import Attention from "@/kilocode/plugins/attention"

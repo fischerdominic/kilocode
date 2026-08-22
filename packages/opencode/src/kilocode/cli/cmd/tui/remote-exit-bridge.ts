@@ -1,4 +1,4 @@
-import type { Exit } from "@opencode-ai/tui/context/exit"
+import type { Exit } from "@/kilocode/types"
 import { RemoteExitRpc } from "@/kilocode/cli/cmd/tui/remote-exit-rpc"
 import { withTimeout } from "@/util/timeout"
 

@@ -1,2 +1,2 @@
-export * from "@opencode-ai/tui/util/locale"
-export { Locale } from "@opencode-ai/tui/util/locale"
+export const Locale = "en" as const
+export type Locale = "en" | "de" | "es" | "fr" | "ja" | "ko" | "pl" | "ru" | "zh" | "zhTW"

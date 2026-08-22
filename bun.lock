@@ -748,10 +748,6 @@
         "@typescript/native-preview": "catalog:",
       },
     },
-    "packages/tui": {
-      "name": "@opencode-ai/tui",
-      "version": "7.4.22",
-    },
     "packages/ui": {
       "name": "@opencode-ai/ui",
       "version": "7.4.22",
@@ -1634,8 +1630,6 @@
     "@opencode-ai/sdk-next": ["@opencode-ai/sdk-next@workspace:packages/sdk-next"],
 
     "@opencode-ai/server": ["@opencode-ai/server@workspace:packages/server"],
-
-    "@opencode-ai/tui": ["@opencode-ai/tui@workspace:packages/tui"],
 
     "@opencode-ai/ui": ["@opencode-ai/ui@workspace:packages/ui"],
 
