@@ -603,12 +603,6 @@ export interface CreateWorktreeSessionRequest {
   files?: FileAttachment[]
 }
 
-export interface TelemetryRequest {
-  type: "telemetry"
-  event: string
-  properties?: Record<string, unknown>
-}
-
 // Create a new worktree (with auto-created first session)
 export interface CreateWorktreeRequest {
   type: "agentManager.createWorktree"
@@ -1503,7 +1497,6 @@ export type WebviewMessage =
   | PersistSessionRequest
   | ForgetSessionRequest
   | RenameWorktreeRequest
-  | TelemetryRequest
   | RequestRepoInfoMessage
   | RequestStateMessage
   | RequestProjectsMessage

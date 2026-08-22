@@ -10,7 +10,6 @@ import type {
   MarketplaceInstalledMetadata,
   MarketplaceRelevanceMetadata,
 } from "../../types/marketplace"
-import { TelemetryEventName } from "../../../../src/services/telemetry/types"
 import { MarketplaceListView } from "./MarketplaceListView"
 import { InstallModal } from "./InstallModal"
 import { RemoveDialog } from "./RemoveDialog"
@@ -57,14 +56,6 @@ export const MarketplaceView = () => {
         const removed = pending()
         setPending(null)
         if (msg.success) {
-          if (removed) {
-            telemetry(TelemetryEventName.MARKETPLACE_ITEM_REMOVED, {
-              itemId: removed.item.id,
-              itemType: removed.item.type,
-              itemName: removed.item.name,
-              target: removed.scope,
-            })
-          }
           fetchData()
         } else {
           setErrors((prev) => [...prev, msg.error ?? t("marketplace.remove.failed", { name: msg.slug })])
@@ -80,34 +71,13 @@ export const MarketplaceView = () => {
     fetchData()
   })
 
-  const telemetry = (event: string, properties?: Record<string, unknown>) => {
-    vscode.postMessage({ type: "telemetry", event, properties: properties ?? {} })
-  }
-
-  onMount(() => {
-    telemetry(TelemetryEventName.MARKETPLACE_TAB_VIEWED)
-  })
-
   const handleInstall = (item: MarketplaceItem) => {
-    telemetry(TelemetryEventName.MARKETPLACE_INSTALL_BUTTON_CLICKED, {
-      itemId: item.id,
-      itemType: item.type,
-      itemName: item.name,
-    })
     dialog.show(() => (
       <InstallModal
         item={item}
         onClose={() => dialog.close()}
         onInstallResult={(success, scope, extra) => {
           if (success) {
-            telemetry(TelemetryEventName.MARKETPLACE_ITEM_INSTALLED, {
-              itemId: item.id,
-              itemType: item.type,
-              itemName: item.name,
-              target: scope,
-              ...(extra?.hasParameters && { hasParameters: true }),
-              ...(extra?.installationMethodName && { installationMethodName: extra.installationMethodName }),
-            })
             fetchData()
           }
         }}

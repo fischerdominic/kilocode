@@ -1,6 +1,5 @@
 import { describe, expect, spyOn, test } from "bun:test"
 import { Effect } from "effect"
-import { Telemetry } from "@kilocode/kilo-telemetry"
 import { Global } from "@opencode-ai/core/global"
 import * as Log from "@opencode-ai/core/util/log"
 import { Agent } from "../../src/agent/agent"
@@ -504,12 +503,6 @@ describe("plan follow-up", () => {
 
   test("ask - returns continue and creates plan message on Keep refining", () =>
     withInstance(async () => {
-      const track = spyOn(Telemetry, "trackPlanFollowup").mockImplementation(() => {})
-      using _ = {
-        [Symbol.dispose]() {
-          track.mockRestore()
-        },
-      }
       const seeded = await seed({ text: "1. Build\n2. Test" })
       const pending = PlanFollowup.ask({
         question,

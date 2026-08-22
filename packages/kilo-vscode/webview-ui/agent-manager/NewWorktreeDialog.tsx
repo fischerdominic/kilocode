@@ -47,7 +47,6 @@ import { insertSpacedText } from "../src/components/chat/prompt-input-utils"
 import { useSlashCommand } from "../src/hooks/useSlashCommand"
 import { WandSparkles } from "@kilocode/kilo-ui/lucide"
 import { BranchSelect, BranchSelectPopover } from "../src/components/shared/BranchSelect"
-import { tracker } from "./telemetry"
 import { cycleAgent } from "../src/context/session-agent"
 import type { ModeRouter } from "./mode-router"
 import { ProjectSelect } from "./ProjectSelect"
@@ -139,10 +138,6 @@ export const NewWorktreeDialog: Component<{
   const session = useSession()
   const provider = useProvider()
   const { config, globalConfig, features, settings } = useConfig()
-  const metrics = tracker(vscode)
-  const track = (button: string, properties?: Record<string, string | number | boolean | undefined>) =>
-    metrics.track(button, "configure_worktree_dialog", properties)
-  const click = metrics.click
 
   const [tab, setTab] = createSignal<DialogTab>("new")
   const [project, setProject] = createSignal(props.projectId ?? props.activeProjectId)
@@ -668,7 +663,6 @@ export const NewWorktreeDialog: Component<{
 
   const handleBranchSelect = (name: string) => {
     if (isPending()) return
-    track("import_branch")
     setImportPending(true)
     setBranchOpen(false)
     setBranchSearch("")
@@ -684,7 +678,7 @@ export const NewWorktreeDialog: Component<{
         <button
           class="am-tab-switcher-pill"
           classList={{ "am-tab-switcher-pill-active": tab() === "new" }}
-          onClick={click("switch_dialog_tab", "configure_worktree_dialog", () => setTab("new"), { tab: "new" })}
+          onClick={() => setTab("new")}
           type="button"
         >
           {t("agentManager.dialog.tab.new")}
@@ -692,7 +686,7 @@ export const NewWorktreeDialog: Component<{
         <button
           class="am-tab-switcher-pill"
           classList={{ "am-tab-switcher-pill-active": tab() === "import" }}
-          onClick={click("switch_dialog_tab", "configure_worktree_dialog", () => setTab("import"), { tab: "import" })}
+          onClick={() => setTab("import")}
           type="button"
         >
           {t("agentManager.dialog.tab.import")}
@@ -740,7 +734,6 @@ export const NewWorktreeDialog: Component<{
                   projects={projects()}
                   selected={project()}
                   onSelect={(id) => {
-                    track("project_select", { changed: id !== props.activeProjectId })
                     setProject(id)
                     setProjectOpen(false)
                   }}
@@ -937,9 +930,7 @@ export const NewWorktreeDialog: Component<{
                         />
                       }
                       tooltipClass="prompt-sandbox-tooltip-content"
-                      onToggle={click("sandbox_toggle", "configure_worktree_dialog", toggleSandbox, () => ({
-                        enabled: !(sandbox() ?? false),
-                      }))}
+                      onToggle={toggleSandbox}
                     />
                   </Show>
                   <Show when={canUseSpeech()}>
@@ -952,12 +943,7 @@ export const NewWorktreeDialog: Component<{
             {/* Advanced options toggle */}
             <button
               class="am-advanced-toggle"
-              onClick={click(
-                "advanced_options",
-                "configure_worktree_dialog",
-                () => setShowAdvanced(!showAdvanced()),
-                () => ({ action: showAdvanced() ? "close" : "open" }),
-              )}
+              onClick={() => setShowAdvanced(!showAdvanced())}
               type="button"
             >
               <Icon name={showAdvanced() ? "chevron-down" : "chevron-right"} size="small" />
@@ -1083,9 +1069,7 @@ export const NewWorktreeDialog: Component<{
                       <button
                         class="am-nv-pill"
                         classList={{ "am-nv-pill-active": versions() === count }}
-                        onClick={click("version_count", "configure_worktree_dialog", () => setVersions(count), {
-                          count,
-                        })}
+                        onClick={() => setVersions(count)}
                         type="button"
                       >
                         {count}
@@ -1098,9 +1082,7 @@ export const NewWorktreeDialog: Component<{
                     >
                       <button
                         class="am-nv-pill am-nv-pill-compare"
-                        onClick={click("compare_models", "configure_worktree_dialog", () => setCompareMode(true), {
-                          action: "open",
-                        })}
+                        onClick={() => setCompareMode(true)}
                         type="button"
                       >
                         <Icon name="layers" size="small" />
@@ -1129,7 +1111,6 @@ export const NewWorktreeDialog: Component<{
                   <button
                     class="am-nv-pill-back"
                     onClick={() => {
-                      track("compare_models", { action: "close" })
                       setCompareMode(false)
                       setModelAllocations(new Map())
                     }}
@@ -1184,15 +1165,7 @@ export const NewWorktreeDialog: Component<{
               variant="primary"
               size="large"
               class="am-nv-submit"
-              onClick={click("create_worktree", "configure_worktree_dialog", handleSubmit, () => ({
-                mode: mode(),
-                versionCount: total(),
-                advanced: showAdvanced(),
-                customBranch: showAdvanced() && !!branchName().trim(),
-                customBase: showAdvanced() && !!baseBranch(),
-                hasPrompt: !!prompt().trim(),
-                hasAttachments: imageAttach.images().length > 0,
-              }))}
+              onClick={handleSubmit}
               disabled={!canSubmit()}
             >
               <Show
@@ -1238,7 +1211,7 @@ export const NewWorktreeDialog: Component<{
               <Button
                 variant="secondary"
                 size="small"
-                onClick={click("import_pull_request", "configure_worktree_dialog", handlePRSubmit)}
+                onClick={handlePRSubmit}
                 disabled={!prUrl().trim() || isPending()}
               >
                 <Show when={prPending()} fallback={t("agentManager.import.open")}>

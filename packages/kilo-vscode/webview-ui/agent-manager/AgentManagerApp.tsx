@@ -178,7 +178,6 @@ import { SidebarToggleButton } from "./SidebarToggleButton"
 import { setTabWidths } from "./tab-widths"
 import { clampPanelWidth, createPanelResize, maxPanelWidth, minPanelWidth, SidePanel } from "./side-panel-layout"
 import { buildShortcutCategories } from "./shortcuts"
-import { tracker } from "./telemetry"
 import { createChatFocus, createPromptFocus, hasQuestionOption } from "./focus"
 import { usePendingCreate } from "./pending-create"
 import { defaultBase as projectDefaultBase } from "./project/default-base"
@@ -221,7 +220,6 @@ const AgentManagerContent: Component = () => {
   const setManagedSessions = (v: Parameters<Setter<ManagedSessionState[]>>[0]) =>
     registry.active().setManagedSessions(v)
   const [selection, setSelection] = createSignal<SidebarSelection>(LOCAL)
-  const metrics = tracker(vscode)
   const [repoBranch, setRepoBranch] = createSignal<string | undefined>()
   const busyWorktrees = () => registry.active().busy()
   const setBusyWorktrees: Setter<Map<string, WorktreeBusyState>> = (v) => registry.active().setBusy(v)
@@ -525,7 +523,6 @@ const AgentManagerContent: Component = () => {
     worktrees,
     diffDatas,
     diffLoading,
-    track: metrics.track,
   })
   const openApplyDialog = apply.openApplyDialog
 
@@ -534,7 +531,7 @@ const AgentManagerContent: Component = () => {
     if (!sel || sel === LOCAL) return
     vscode.postMessage({ type: "agentManager.openWorktree", worktreeId: sel })
   }
-  const openWindow = metrics.click("open_worktree_window", "tab_toolbar", openWorktreeDirectory)
+  const openWindow = openWorktreeDirectory
 
   const togglePRPanel = () => {
     setHistory(false)
@@ -552,7 +549,6 @@ const AgentManagerContent: Component = () => {
   const openSelectedPR = () => {
     const sel = selection()
     if (!sel || sel === LOCAL || !prStatuses()[sel]) return
-    metrics.track("open_pull_request", "keyboard_shortcut")
     togglePRPanel()
   }
 
@@ -1750,7 +1746,7 @@ const AgentManagerContent: Component = () => {
   const handleConfigureSetupScript = () => {
     vscode.postMessage({ type: "agentManager.configureSetupScript" })
   }
-  const setupScript = metrics.click("configure_setup_script", "worktree_settings", handleConfigureSetupScript)
+  const setupScript = handleConfigureSetupScript
 
   const handleChangeDefaultBaseBranch = () => {
     dialog.show(() => (
@@ -1802,7 +1798,7 @@ const AgentManagerContent: Component = () => {
     expandSidebar()
     vscode.postMessage({ type: "agentManager.createWorktree" })
   }
-  const createWorktree = metrics.click("new_worktree", "worktrees", handleCreateWorktree)
+  const createWorktree = handleCreateWorktree
 
   const showNewWorktreeDialog = () => {
     if (!loaded()) return
@@ -1906,7 +1902,6 @@ const AgentManagerContent: Component = () => {
 
   const promoteSession = (sessionId: string) => {
     if (!loaded()) return
-    metrics.track("promote_session", "unassigned_session")
     vscode.postMessage({ type: "agentManager.promoteSession", sessionId })
   }
 
@@ -1924,7 +1919,6 @@ const AgentManagerContent: Component = () => {
   }
 
   const openUnassigned = (id: string) => {
-    metrics.track("open_session_locally", "unassigned_session_menu")
     openLocally(id)
   }
 
@@ -2033,7 +2027,6 @@ const AgentManagerContent: Component = () => {
     },
     refocus: requestChatFocus,
     postMessage: (msg) => vscode.postMessage(msg as never),
-    track: (button, surface, properties) => metrics.track(button, surface, properties),
     // Panel-local pick, immune to cross-window setting echoes (see side.ts).
     saved: readSavedDestination(vscode.getState<Record<string, unknown>>()),
     save: (d) => vscode.setState({ ...vscode.getState<Record<string, unknown>>(), terminalDestination: d }),
@@ -2207,9 +2200,6 @@ const AgentManagerContent: Component = () => {
 
   /** The Local/worktrees/sessions body of the active project. */
   const toggleDiffPanel = () => {
-    metrics.track("side_review", "tab_toolbar", {
-      action: diffOpen() && !reviewActive() ? "close" : "open",
-    })
     if (reviewActive()) {
       closeReviewTab()
       setSidePanel(SidePanel.Diff)
@@ -2256,8 +2246,8 @@ const AgentManagerContent: Component = () => {
       newTerminalLabel: t("agentManager.terminal.new"),
       newSessionMenuLabel: t("agentManager.session.newSession"),
       moreOptionsLabel: t("agentManager.tab.newOptions"),
-      onNewSession: metrics.click("new_session", "tab_bar", handleAddSession),
-      onNewTerminal: metrics.click("embedded_terminal", "new_tab_menu", () => termHandlers.requestNew()),
+      onNewSession: handleAddSession,
+      onNewTerminal: () => termHandlers.requestNew(),
     })
 
   return (
@@ -2336,7 +2326,7 @@ const AgentManagerContent: Component = () => {
             onCreateWorktree={createWorktree}
             onNewWorktree={showNewWorktreeDialog}
             onNewSection={newSection}
-            onShortcuts={metrics.click("keyboard_shortcuts", "worktrees_header", handleShowKeyboardShortcuts)}
+            onShortcuts={handleShowKeyboardShortcuts}
             onSetup={setupScript}
             onBranch={handleChangeDefaultBaseBranch}
             sections={sections}
@@ -2372,7 +2362,6 @@ const AgentManagerContent: Component = () => {
             selectUnassigned={selectUnassigned}
             promoteSession={promoteSession}
             openUnassigned={openUnassigned}
-            track={metrics.click}
           />
         </Show>
       </div>
@@ -2410,7 +2399,7 @@ const AgentManagerContent: Component = () => {
           diffOpen={diffOpen}
           reviewActive={reviewActive}
           onToggleDiff={toggleDiffPanel}
-          onToggleReview={metrics.click("fullscreen_review", "tab_toolbar", toggleReviewTab)}
+          onToggleReview={toggleReviewTab}
           prStatus={() => activePR()?.pr}
           prOpen={prOpen}
           onTogglePR={togglePRPanel}
@@ -2422,7 +2411,6 @@ const AgentManagerContent: Component = () => {
             sideCtl.openPreferred("tab_toolbar")
           }}
           onTerminalDestinationChoose={sideCtl.choose}
-          track={metrics.click}
         />
 
         <Show when={overlay()}>
@@ -2558,7 +2546,6 @@ const AgentManagerContent: Component = () => {
                             if (!loaded()) return
                             const sid = session.currentSessionID()
                             if (!sid) return
-                            metrics.track("open_session_locally", "readonly_banner")
                             openLocally(sid)
                           }}
                         >
@@ -2571,7 +2558,6 @@ const AgentManagerContent: Component = () => {
                             if (!loaded()) return
                             const sid = session.currentSessionID()
                             if (!sid) return
-                            metrics.track("promote_session", "readonly_banner")
                             vscode.postMessage({ type: "agentManager.promoteSession", sessionId: sid })
                           }}
                         >
@@ -2620,11 +2606,11 @@ const AgentManagerContent: Component = () => {
                         comments={reviewComments()}
                         onCommentsChange={setReviewCommentsForSelection}
                         composer={reviewComposer}
-                        onSendClick={() => metrics.track("send_review_comments", "side_review")}
-                        onClose={metrics.click("side_review_close", "side_review", () => setSidePanel(null))}
+                        onSendClick={() => undefined}
+                        onClose={() => setSidePanel(null)}
                         onExpand={
                           selection() !== null
-                            ? metrics.click("fullscreen_review", "side_review", openReviewTab, { action: "open" })
+                            ? openReviewTab
                             : undefined
                         }
                         onRequestDiff={requestDiffFile}
@@ -2633,7 +2619,7 @@ const AgentManagerContent: Component = () => {
                           if (id)
                             vscode.postMessage({ type: "agentManager.openFile", sessionId: id, filePath: file, line })
                         }}
-                        onRevertFile={metrics.use("revert_file", "side_review", revertCtl.revert)}
+                        onRevertFile={revertCtl.revert}
                         revertingFiles={revertCtl.reverting()}
                         activeTerminalId={terms.activeId()}
                       />
@@ -2699,7 +2685,7 @@ const AgentManagerContent: Component = () => {
                   onCommentsChange={setReviewCommentsForSelection}
                   composer={reviewComposer}
                   onSendAll={closeReviewTab}
-                  onSendClick={() => metrics.track("send_review_comments", "fullscreen_review")}
+                  onSendClick={() => undefined}
                   diffStyle={reviewDiffStyle()}
                   onDiffStyleChange={setSharedDiffStyle}
                   markdownRender={markdown.render()}
@@ -2709,10 +2695,10 @@ const AgentManagerContent: Component = () => {
                     const id = diffCtx()
                     if (id) vscode.postMessage({ type: "agentManager.openFile", sessionId: id, filePath: file, line })
                   }}
-                  onRevertFile={metrics.use("revert_file", "fullscreen_review", revertCtl.revert)}
+                  onRevertFile={revertCtl.revert}
                   revertingFiles={revertCtl.reverting()}
                   activeTerminalId={terms.activeId()}
-                  onClose={metrics.click("fullscreen_review", "fullscreen_review", closeReviewTab, { action: "close" })}
+                  onClose={closeReviewTab}
                 />
               </div>
             </Show>

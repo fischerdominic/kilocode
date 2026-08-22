@@ -17,7 +17,7 @@ import { mergeDeep } from "remeda"
 import { DEFAULT_HEADERS } from "@/kilocode/const" // kilocode_change
 // kilocode_change start
 import { getKiloProjectId } from "@/kilocode/project-id"
-import { Identity } from "@kilocode/kilo-telemetry"
+
 import { KiloSession } from "@/kilocode/session"
 import { stripInternalOptions } from "@/kilocode/agent/options"
 import { KilocodeSystemPrompt } from "@/kilocode/system-prompt"
@@ -176,7 +176,7 @@ export const prepare = Effect.fn("LLMRequestPrep.prepare")(function* (input: Pre
     ? Effect.promise(() => getKiloProjectId().catch(() => undefined))
     : Effect.succeed(undefined)
   const machineId = yield* isKilo
-    ? Effect.promise(() => Identity.getMachineId().catch(() => undefined))
+    ? Effect.promise(() => Promise.resolve("anonymous"))
     : Effect.succeed(undefined)
   const parent = input.parentSessionID ?? KiloSession.resolveParent(input.sessionID)
   // kilocode_change end

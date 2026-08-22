@@ -1,6 +1,5 @@
-import { afterEach, describe, expect, mock, spyOn, test } from "bun:test"
+import { afterEach, describe, expect, test } from "bun:test"
 import { Effect } from "effect"
-import { Telemetry } from "@kilocode/kilo-telemetry"
 import { Command } from "../../../src/command"
 import { reviewCommand } from "../../../src/kilocode/review/command"
 import { provideTestInstance } from "../../fixture/fixture"
@@ -75,12 +74,11 @@ describe("suggestion", () => {
     })
   })
 
-  test("accept tracks suggestion telemetry with parsed slash command", async () => {
+  test("accept parses slash command from suggestion action", async () => {
     await using tmp = await tmpdir({ git: true })
     await provideTestInstance({
       directory: tmp.path,
       fn: async () => {
-        const track = spyOn(Telemetry, "trackSuggestionAccepted")
         const ask = Suggestion.show({
           sessionID: "ses_test",
           text: "Review changes?",
@@ -90,26 +88,16 @@ describe("suggestion", () => {
         const list = await Suggestion.list()
         await Suggestion.accept({ requestID: list[0]!.id, index: 0 })
 
-        expect(track).toHaveBeenCalledTimes(1)
-        expect(track).toHaveBeenCalledWith({
-          sessionId: "ses_test",
-          requestId: list[0]!.id,
-          index: 0,
-          tool: "suggest",
-          command: "review",
-          actionCount: 1,
-        })
         await expect(ask).resolves.toEqual({ label: "Review", prompt: "/review uncommitted --focus tests" })
       },
     })
   })
 
-  test("show tracks review suggestion telemetry with parsed slash command", async () => {
+  test("show returns suggestion with parsed slash command", async () => {
     await using tmp = await tmpdir({ git: true })
     await provideTestInstance({
       directory: tmp.path,
       fn: async () => {
-        const track = spyOn(Telemetry, "trackSuggestionShown")
         const ask = Suggestion.show({
           sessionID: "ses_test",
           text: "Review changes?",
@@ -117,16 +105,6 @@ describe("suggestion", () => {
         })
 
         const list = await Suggestion.list()
-
-        expect(track).toHaveBeenCalledTimes(1)
-        expect(track).toHaveBeenCalledWith({
-          sessionId: "ses_test",
-          requestId: list[0]!.id,
-          index: 0,
-          tool: "suggest",
-          command: "review",
-          actionCount: 1,
-        })
 
         await Suggestion.dismiss(list[0]!.id)
         await expect(ask).rejects.toBeInstanceOf(Suggestion.DismissedError)
@@ -139,8 +117,6 @@ describe("suggestion", () => {
     await provideTestInstance({
       directory: tmp.path,
       fn: async () => {
-        const shown = spyOn(Telemetry, "trackSuggestionShown")
-        const accepted = spyOn(Telemetry, "trackSuggestionAccepted")
         const ask = Suggestion.show({
           sessionID: "ses_test",
           text: "Review release?",
@@ -152,39 +128,17 @@ describe("suggestion", () => {
 
         const list = await Suggestion.list()
 
-        expect(shown).toHaveBeenCalledTimes(1)
-        expect(shown).toHaveBeenCalledWith({
-          sessionId: "ses_test",
-          requestId: list[0]!.id,
-          index: 0,
-          tool: "suggest",
-          command: "review",
-          actionCount: 2,
-        })
-
         await Suggestion.accept({ requestID: list[0]!.id, index: 0 })
-
-        expect(accepted).toHaveBeenCalledTimes(1)
-        expect(accepted).toHaveBeenCalledWith({
-          sessionId: "ses_test",
-          requestId: list[0]!.id,
-          index: 0,
-          tool: "suggest",
-          command: "review",
-          actionCount: 2,
-        })
         await expect(ask).resolves.toEqual({ label: "Review", prompt: "/review branch release focus on tests" })
       },
     })
   })
 
-  test("non-review commands do not track suggestion telemetry", async () => {
+  test("non-review commands pass through unchanged", async () => {
     await using tmp = await tmpdir({ git: true })
     await provideTestInstance({
       directory: tmp.path,
       fn: async () => {
-        const shown = spyOn(Telemetry, "trackSuggestionShown")
-        const accepted = spyOn(Telemetry, "trackSuggestionAccepted")
         const ask = Suggestion.show({
           sessionID: "ses_test",
           text: "Run tests?",
@@ -193,21 +147,16 @@ describe("suggestion", () => {
 
         const list = await Suggestion.list()
         await Suggestion.accept({ requestID: list[0]!.id, index: 0 })
-
-        expect(shown).toHaveBeenCalledTimes(0)
-        expect(accepted).toHaveBeenCalledTimes(0)
         await expect(ask).resolves.toEqual({ label: "Test", prompt: "/custom-project-command" })
       },
     })
   })
 
-  test("dismiss does not track accepted suggestion telemetry", async () => {
+  test("dismiss does not resolve the suggestion", async () => {
     await using tmp = await tmpdir({ git: true })
     await provideTestInstance({
       directory: tmp.path,
       fn: async () => {
-        const shown = spyOn(Telemetry, "trackSuggestionShown")
-        const accepted = spyOn(Telemetry, "trackSuggestionAccepted")
         const ask = Suggestion.show({
           sessionID: "ses_test",
           text: "Review changes?",
@@ -217,20 +166,16 @@ describe("suggestion", () => {
         const list = await Suggestion.list()
         await Suggestion.dismiss(list[0]!.id)
 
-        expect(shown).toHaveBeenCalledTimes(1)
-        expect(accepted).toHaveBeenCalledTimes(0)
         await expect(ask).rejects.toBeInstanceOf(Suggestion.DismissedError)
       },
     })
   })
 
-  test("invalid action index does not track accepted suggestion telemetry", async () => {
+  test("invalid action index returns false", async () => {
     await using tmp = await tmpdir({ git: true })
     await provideTestInstance({
       directory: tmp.path,
       fn: async () => {
-        const shown = spyOn(Telemetry, "trackSuggestionShown")
-        const accepted = spyOn(Telemetry, "trackSuggestionAccepted")
         const ask = Suggestion.show({
           sessionID: "ses_test",
           text: "Review changes?",
@@ -239,9 +184,6 @@ describe("suggestion", () => {
 
         const list = await Suggestion.list()
         await expect(Suggestion.accept({ requestID: list[0]!.id, index: 1 })).resolves.toBe(false)
-
-        expect(shown).toHaveBeenCalledTimes(1)
-        expect(accepted).toHaveBeenCalledTimes(0)
         await expect(ask).rejects.toThrow("Invalid action index: 1")
       },
     })

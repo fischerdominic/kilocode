@@ -4,7 +4,6 @@ import { useVSCode } from "../../context/vscode"
 import { useSession } from "../../context/session"
 import { useProvider } from "../../context/provider"
 import { useLanguage } from "../../context/language"
-import { TelemetryEventName } from "../../../../src/services/telemetry/types"
 import { stripSubProviderPrefix } from "../shared/model-selector-utils"
 
 export const KiloNotifications: Component<{ sessionID?: Accessor<string | undefined> }> = (props) => {
@@ -78,11 +77,6 @@ export const KiloNotifications: Component<{ sessionID?: Accessor<string | undefi
     const suggestion = suggestedModel()
     if (!suggestion) return
     session.selectModel(suggestion.providerID, suggestion.modelID, sessionID())
-    vscode.postMessage({
-      type: "telemetry",
-      event: TelemetryEventName.NOTIFICATION_CLICKED,
-      properties: { actionText: "Try model", suggestModelId: current()?.suggestModelId },
-    })
   }
 
   return (

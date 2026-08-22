@@ -1,5 +1,4 @@
 import type { Command } from "@/command"
-import type { ReviewCommand } from "@kilocode/kilo-telemetry"
 import REVIEW from "./review.txt"
 
 const legacy = {
@@ -13,15 +12,15 @@ const legacy = {
   },
 }
 
-export function isReviewCommand(command: string | undefined): command is ReviewCommand {
+export function isReviewCommand(command: string | undefined): command is "review" {
   return command === "review"
 }
 
-export function reviewCommandName(command: string | undefined): ReviewCommand | undefined {
+export function reviewCommandName(command: string | undefined): "review" | undefined {
   if (isReviewCommand(command)) return command
 }
 
-export function parseReviewCommand(prompt: string | undefined): ReviewCommand | undefined {
+export function parseReviewCommand(prompt: string | undefined): "review" | undefined {
   if (!prompt?.startsWith("/")) return
   const name = prompt.slice(1).split(/\s/, 1)[0]
   return reviewCommandName(name)

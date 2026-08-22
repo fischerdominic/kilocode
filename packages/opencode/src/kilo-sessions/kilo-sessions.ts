@@ -36,7 +36,6 @@ import {
   markRenameAdopted,
 } from "@/kilo-sessions/rename-adoptions"
 import { SessionStatus } from "@/session/status"
-import { Telemetry } from "@kilocode/kilo-telemetry"
 import { Question } from "@/question"
 import { Permission } from "@/permission"
 import { withTimeout } from "@/util/timeout"
@@ -774,7 +773,6 @@ export namespace KiloSessions {
 
       remote = { conn, sender }
       log.info("remote connection enabled", { connected: conn.connected })
-      Telemetry.trackRemoteConnectionOpened()
       void Bus.publish(Instance.current, Event.RemoteStatusChanged, { enabled: true, connected: conn.connected })
     })()
       .catch((err) => {

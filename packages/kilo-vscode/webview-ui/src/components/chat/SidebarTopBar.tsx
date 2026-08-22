@@ -11,7 +11,6 @@ import { Component, For } from "solid-js"
 import { Tooltip } from "@kilocode/kilo-ui/tooltip"
 import { useVSCode } from "../../context/vscode"
 import { useLanguage } from "../../context/language"
-import { TelemetryEventName } from "../../../../src/services/telemetry/types"
 import "@vscode/codicons/dist/codicon.css"
 
 export interface SidebarTopBarProps {
@@ -34,14 +33,6 @@ interface Action {
 export const SidebarTopBar: Component<SidebarTopBarProps> = (props) => {
   const vscode = useVSCode()
   const language = useLanguage()
-
-  // Mirrors the telemetry the native toolbar buttons used to record, so analytics aren't lost.
-  const track = (button: string) =>
-    vscode.postMessage({
-      type: "telemetry",
-      event: TelemetryEventName.TITLE_BUTTON_CLICKED,
-      properties: { button, surface: props.surface },
-    })
 
   const open = (
     type: "openAgentManager" | "openKiloClaw" | "openMarketplacePanel" | "openProfilePanel" | "openSettingsPanel",
@@ -70,10 +61,7 @@ export const SidebarTopBar: Component<SidebarTopBarProps> = (props) => {
                 data-variant="ghost"
                 data-size="small"
                 aria-label={label}
-                onClick={() => {
-                  track(action.button)
-                  action.run()
-                }}
+                onClick={() => action.run()}
               >
                 <div data-component="icon" data-size="small">
                   <i class={`codicon codicon-${action.codicon}`} aria-hidden="true" />

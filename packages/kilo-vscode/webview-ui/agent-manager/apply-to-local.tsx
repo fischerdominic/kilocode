@@ -15,7 +15,6 @@ import { showToast } from "@kilocode/kilo-ui/toast"
 import { groupApplyConflicts } from "./apply-conflicts"
 import { ApplyDialog } from "./ApplyDialog"
 import { composeDiffId } from "./diff-scope-state"
-import type { tracker } from "./telemetry"
 import type { useDialog } from "@kilocode/kilo-ui/context/dialog"
 import type { useLanguage } from "../src/context/language"
 import type { useVSCode } from "../src/context/vscode"
@@ -38,8 +37,6 @@ interface ApplyToLocalOptions {
   worktrees: Accessor<{ id: string }[]>
   diffDatas: Accessor<Record<string, WorktreeFileDiff[]>>
   diffLoading: Accessor<boolean>
-  /** Telemetry: metrics.track(name, surface, data). */
-  track: ReturnType<typeof tracker>["track"]
 }
 
 export function createApplyToLocal(opts: ApplyToLocalOptions) {
@@ -161,7 +158,6 @@ export function createApplyToLocal(opts: ApplyToLocalOptions) {
     if (!target) return
     if (!applyHasSelection()) return
     if (applyBusyForTarget()) return
-    opts.track("apply_to_local", "apply_dialog", { fileCount: applySelectedFiles().length })
     applyToLocal(target, applySelectedFiles())
   }
 

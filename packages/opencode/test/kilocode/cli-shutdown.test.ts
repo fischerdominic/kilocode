@@ -17,24 +17,6 @@ mock.module("@opencode-ai/core/installation/version", () => ({
   InstallationVersion: "test",
 }))
 
-mock.module("@kilocode/kilo-telemetry", () => ({
-  Telemetry: {
-    async init() {
-      calls.push("telemetry:init")
-    },
-    async updateIdentity() {},
-    trackCliStart() {},
-    trackCliExit(code?: number) {
-      calls.push(`track:${code ?? "undefined"}`)
-    },
-    async shutdown(timeout?: number) {
-      calls.push("telemetry")
-      timeouts.push(timeout)
-      if (err) throw err
-    },
-  },
-}))
-
 mock.module("@/effect/app-runtime", () => ({
   AppRuntime: {
     async runPromise() {
