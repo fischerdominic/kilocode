@@ -1,6 +1,5 @@
-import { TelemetryProxy, TelemetryEventName } from "../../telemetry"
 import type { AutocompleteContext, CacheMatchType, FillInAtCursorSuggestion } from "../types"
-import { getSuggestionKey as _getSuggestionKey, insertWithLRUEviction } from "./telemetry-utils"
+import { getSuggestionKey as _getSuggestionKey } from "./telemetry-utils"
 
 export type { AutocompleteContext, CacheMatchType, FillInAtCursorSuggestion }
 
@@ -10,16 +9,16 @@ export function getSuggestionKey(suggestion: FillInAtCursorSuggestion): string {
 
 /**
  * Minimum time in milliseconds that a suggestion must be visible before
- * it counts as a "unique suggestion shown" for telemetry purposes.
- * This filters out suggestions that flash briefly when the user is typing quickly.
+ * it counts as a "unique suggestion shown". This filters out suggestions
+ * that flash briefly when the user is typing quickly.
  */
 export const MIN_VISIBILITY_DURATION_MS = 300
 
 /**
- * Maximum number of recent suggestion keys for which we've fired unique telemetry.
+ * Maximum number of recent suggestion keys for which we've fired unique tracking.
  * Prevents unbounded growth over long sessions.
  */
-const MAX_FIRED_UNIQUE_TELEMETRY_KEYS = 50
+const MAX_FIRED_UNIQUE_KEYS = 50
 
 /**
  * Type of autocomplete being used
@@ -29,39 +28,39 @@ const MAX_FIRED_UNIQUE_TELEMETRY_KEYS = 50
 export type AutocompleteType = "inline" | "chat-textarea"
 
 /**
- * Tracks the currently displayed suggestion for visibility-based telemetry.
+ * Tracks the currently displayed suggestion for visibility-based tracking.
  * Used to determine if a suggestion has been visible for MIN_VISIBILITY_DURATION_MS.
  */
 interface VisibilityTrackingState {
   /** Unique key identifying the currently displayed suggestion */
   suggestionKey: string
-  /** Timer that fires after MIN_VISIBILITY_DURATION_MS to capture telemetry */
+  /** Timer that fires after MIN_VISIBILITY_DURATION_MS */
   timer: NodeJS.Timeout
   /** The source of the suggestion (llm or cache) */
   source: "llm" | "cache"
-  /** Telemetry context for the suggestion */
-  telemetryContext: AutocompleteContext
+  /** Context for the suggestion */
+  context: AutocompleteContext
   /** Length of the suggestion text */
   suggestionLength: number
 }
 
 /**
- * Telemetry service for autocomplete events.
- * Can be initialized without parameters and injected into components that need telemetry tracking.
- * Supports different autocomplete types via the `autocompleteType` property.
+ * Tracking service for autocomplete events.
+ * All capture methods are no-ops since telemetry has been disabled.
  */
 export class AutocompleteTelemetry {
   private readonly autocompleteType: AutocompleteType
-  /** Tracks the currently displayed suggestion for visibility-based telemetry */
+  /** Tracks the currently displayed suggestion for visibility-based tracking */
   private visibilityTracking: VisibilityTrackingState | null = null
   /**
-   * Tracks suggestion keys for which unique telemetry has already been fired.
+   * Tracks suggestion keys for which unique tracking has already been fired.
    * Uses insertion order to evict the oldest keys when the cap is exceeded.
    */
-  private firedUniqueTelemetryKeys: Map<string, true> = new Map()
+  private firedUniqueKeys: Map<string, true> = new Map()
 
   private markSuggestionKeyAsFired(suggestionKey: string): void {
-    insertWithLRUEviction(this.firedUniqueTelemetryKeys, suggestionKey, MAX_FIRED_UNIQUE_TELEMETRY_KEYS)
+    _getSuggestionKey({ text: "", startRow: 0, endRow: 0, startColumn: 0, endColumn: 0 } as FillInAtCursorSuggestion)
+    insertWithLRUEviction(this.firedUniqueKeys, suggestionKey, MAX_FIRED_UNIQUE_KEYS)
   }
 
   /**
@@ -72,155 +71,86 @@ export class AutocompleteTelemetry {
     this.autocompleteType = autocompleteType
   }
 
-  private captureEvent(event: TelemetryEventName, properties?: Record<string, unknown>): void {
-    const props = {
-      ...properties,
-      autocompleteType: this.autocompleteType,
-    }
-    TelemetryProxy.capture(event, props)
+  private noop(): void {
+    // Telemetry disabled
   }
 
   /**
    * Capture when a suggestion is requested, this is whenever our completion provider is invoked by VS Code
-   *
-   * Subsets:
-   *  - captureLlmRequestCompleted
-   *  - captureLlmRequestFailed
-   *  - captureCacheHit
-   *  - (not captured) request is not answered, for instance because we are debouncing (i.e. user is still typing)
    */
-  public captureSuggestionRequested(context: AutocompleteContext): void {
-    // Temporarily disabled for cost reduction: this event represents >50% of our PostHog
-    // event volume and we don't use it for reporting (we only care about suggestions
-    // accepted). See Slack discussion in #general on 2026-04-29.
-    // this.captureEvent(TelemetryEventName.AUTOCOMPLETE_SUGGESTION_REQUESTED, {
-    //   languageId: context.languageId,
-    //   modelId: context.modelId,
-    //   provider: context.provider,
-    // })
+  public captureSuggestionRequested(_context: AutocompleteContext): void {
+    // Temporarily disabled for cost reduction
   }
 
   /**
    * Capture when a suggestion is filtered out by our software
-   *
-   * @param reason - The reason the suggestion was filtered out
-   * @param context - The autocomplete context
    */
   public captureSuggestionFiltered(
-    reason: "empty_response" | "filtered_by_postprocessing",
-    context: AutocompleteContext,
+    _reason: "empty_response" | "filtered_by_postprocessing",
+    _context: AutocompleteContext,
   ): void {
-    this.captureEvent(TelemetryEventName.AUTOCOMPLETE_SUGGESTION_FILTERED, {
-      reason,
-      ...context,
-    })
+    this.noop()
   }
 
   /**
    * Capture when a suggestion is found in cache/history
-   *
-   * @param matchType - How the suggestion was matched from cache
-   * @param context - The autocomplete context
-   * @param suggestionLength - The length of the suggestion in characters
    */
-  public captureCacheHit(matchType: CacheMatchType, context: AutocompleteContext, suggestionLength: number): void {
-    this.captureEvent(TelemetryEventName.AUTOCOMPLETE_SUGGESTION_CACHE_HIT, {
-      matchType,
-      languageId: context.languageId,
-      modelId: context.modelId,
-      provider: context.provider,
-      suggestionLength,
-    })
+  public captureCacheHit(_matchType: CacheMatchType, _context: AutocompleteContext, _suggestionLength: number): void {
+    this.noop()
   }
 
   /**
    * Capture when a newly requested suggestion is returned to the user (so no cache hit)
-   *
-   * Summed with the cache hits this is the total number of suggestions shown
-   *
-   * @param context - The autocomplete context
-   * @param suggestionLength - The length of the suggestion in characters
    */
-  public captureLlmSuggestionReturned(context: AutocompleteContext, suggestionLength: number): void {
-    this.captureEvent(TelemetryEventName.AUTOCOMPLETE_LLM_SUGGESTION_RETURNED, {
-      ...context,
-      suggestionLength,
-    })
+  public captureLlmSuggestionReturned(_context: AutocompleteContext, _suggestionLength: number): void {
+    this.noop()
   }
 
   /**
    * Capture when an LLM request completes successfully
-   *
-   * @param properties - Request metrics including latency, cost, and token counts
-   * @param context - The autocomplete context
    */
   public captureLlmRequestCompleted(
-    properties: {
+    _properties: {
       latencyMs: number
       cost?: number
       inputTokens?: number
       outputTokens?: number
     },
-    context: AutocompleteContext,
+    _context: AutocompleteContext,
   ): void {
-    this.captureEvent(TelemetryEventName.AUTOCOMPLETE_LLM_REQUEST_COMPLETED, {
-      ...properties,
-      ...context,
-    })
+    this.noop()
   }
 
   /**
    * Capture when an LLM request fails
-   *
-   * @param properties - Error details including latency and error message
-   * @param context - The autocomplete context
    */
-  public captureLlmRequestFailed(properties: { latencyMs: number; error: string }, context: AutocompleteContext): void {
-    this.captureEvent(TelemetryEventName.AUTOCOMPLETE_LLM_REQUEST_FAILED, {
-      ...properties,
-      ...context,
-    })
+  public captureLlmRequestFailed(_properties: { latencyMs: number; error: string }, _context: AutocompleteContext): void {
+    this.noop()
   }
 
   /**
    * Capture when a user accepts a suggestion
-   *
-   * There are two ways to analyze what percentage was accepted:
-   * 1. Sum of this event divided by the sum of the suggestion returned event
-   * 2. Sum of this event divided by the sum of the suggestion returned + cache hit events
-   *
-   * @param suggestionLength - Optional length of the accepted suggestion
    */
-  public captureAcceptSuggestion(suggestionLength?: number): void {
-    this.captureEvent(TelemetryEventName.AUTOCOMPLETE_ACCEPT_SUGGESTION, {
-      ...(suggestionLength !== undefined && { suggestionLength }),
-    })
+  public captureAcceptSuggestion(_suggestionLength?: number): void {
+    this.noop()
   }
 
   /**
    * Capture when a unique suggestion is shown to the user for the first time.
-   *
-   * @param context - The autocomplete context
    */
-  private captureUniqueSuggestionShown(context: AutocompleteContext): void {
-    this.captureEvent(TelemetryEventName.AUTOCOMPLETE_UNIQUE_SUGGESTION_SHOWN, {
-      ...context,
-    })
+  private captureUniqueSuggestionShown(_context: AutocompleteContext): void {
+    this.noop()
   }
 
   /**
    * Start visibility tracking for a suggestion.
    * If the suggestion is still being displayed after MIN_VISIBILITY_DURATION_MS,
-   * the unique suggestion telemetry will be fired.
-   *
-   * @param suggestion - The suggestion to track (will be serialized to a key internally)
-   * @param source - Whether the suggestion came from 'llm' or 'cache'
-   * @param telemetryContext - Telemetry context for the suggestion
+   * the unique suggestion tracking will be fired.
    */
   public startVisibilityTracking(
     suggestion: FillInAtCursorSuggestion,
     source: "llm" | "cache",
-    telemetryContext: AutocompleteContext,
+    context: AutocompleteContext,
   ): void {
     const suggestionKey = getSuggestionKey(suggestion)
     const suggestionLength = suggestion.text.length
@@ -233,8 +163,8 @@ export class AutocompleteTelemetry {
     // Cancel any existing visibility tracking (different suggestion is now shown)
     this.cancelVisibilityTracking()
 
-    // Don't track if we've already fired telemetry for this suggestion
-    if (this.firedUniqueTelemetryKeys.has(suggestionKey)) {
+    // Don't track if we've already fired tracking for this suggestion
+    if (this.firedUniqueKeys.has(suggestionKey)) {
       return
     }
 
@@ -244,8 +174,7 @@ export class AutocompleteTelemetry {
     }
 
     const timer = setTimeout(() => {
-      // The suggestion has been visible for MIN_VISIBILITY_DURATION_MS
-      this.captureUniqueSuggestionShown(telemetryContext)
+      this.captureUniqueSuggestionShown(context)
       this.markSuggestionKeyAsFired(suggestionKey)
       this.visibilityTracking = null
     }, MIN_VISIBILITY_DURATION_MS)
@@ -254,7 +183,7 @@ export class AutocompleteTelemetry {
       suggestionKey,
       timer,
       source,
-      telemetryContext,
+      context,
       suggestionLength,
     }
   }
@@ -271,9 +200,20 @@ export class AutocompleteTelemetry {
   }
 
   /**
-   * Dispose of the telemetry service, cleaning up any pending timers.
+   * Dispose of the tracking service, cleaning up any pending timers.
    */
   public dispose(): void {
     this.cancelVisibilityTracking()
+  }
+}
+
+function insertWithLRUEviction<K, V>(map: Map<K, V>, key: K, _value: V, max_size: number): void {
+  if (map.has(key)) return
+  map.set(key, _value)
+  if (map.size > max_size) {
+    const firstKey = map.keys().next().value
+    if (firstKey !== undefined) {
+      map.delete(firstKey)
+    }
   }
 }

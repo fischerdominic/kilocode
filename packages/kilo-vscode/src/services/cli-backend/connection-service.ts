@@ -221,7 +221,6 @@ export class KiloConnectionService {
 
   /**
    * Get server config (baseUrl + password). Returns null if not connected.
-   * Used by TelemetryProxy to POST events to the CLI server.
    */
   getServerConfig(): ServerConfig | null {
     return this.config

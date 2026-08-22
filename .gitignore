@@ -66,6 +66,7 @@ tsconfig.tsbuildinfo
 .kilocode/bun.lock
 .kilocode/yarn.lock
 .kilocode/node_modules
+packages/_archived
 
 # Test Artifacts
 packages/app/.artifacts/

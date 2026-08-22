@@ -1,7 +1,6 @@
 import crypto from "crypto"
 import * as vscode from "vscode"
 import { t } from "../i18n"
-import { TelemetryProxy, TelemetryEventName } from "../telemetry"
 import { AutocompleteStatusBar } from "./AutocompleteStatusBar"
 import { AutocompleteCodeActionProvider } from "./AutocompleteCodeActionProvider"
 import { AutocompleteInlineCompletionProvider } from "./classic-auto-complete/AutocompleteInlineCompletionProvider"
@@ -144,22 +143,8 @@ export class AutocompleteServiceManager {
         return toAllowedMercuryRecentSnippets(raw, (path) => ignore.validateAccess(path))
       },
       onFatalError: (status) => this.handleFatalAutocompleteError(status),
-      onSuggestion: (event) => {
-        const eventName =
-          event.status === "error"
-            ? TelemetryEventName.AUTOCOMPLETE_LLM_REQUEST_FAILED
-            : event.shown
-              ? TelemetryEventName.AUTOCOMPLETE_LLM_SUGGESTION_RETURNED
-              : TelemetryEventName.AUTOCOMPLETE_LLM_REQUEST_COMPLETED
-        TelemetryProxy.capture(eventName, {
-          mode: "next-edit",
-          model: getAutocompleteModel(this.settings?.provider, this.settings?.model).id,
-          latencyMs: event.latencyMs,
-          inputTokens: event.inputTokens,
-          outputTokens: event.outputTokens,
-          shown: event.shown,
-          errorStatus: event.errorStatus,
-        })
+      onSuggestion: (_event) => {
+        // Telemetry disabled
       },
     })
 
@@ -273,8 +258,6 @@ export class AutocompleteServiceManager {
       enableSmartInlineTaskKeybinding: false,
     })
 
-    TelemetryProxy.capture(TelemetryEventName.GHOST_SERVICE_DISABLED)
-
     await this.load()
   }
 
@@ -340,9 +323,6 @@ export class AutocompleteServiceManager {
     }
 
     this.taskId = crypto.randomUUID()
-    TelemetryProxy.capture(TelemetryEventName.INLINE_ASSIST_AUTO_TASK, {
-      taskId: this.taskId,
-    })
 
     const document = editor.document
 

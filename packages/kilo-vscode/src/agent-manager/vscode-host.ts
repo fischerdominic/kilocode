@@ -15,7 +15,6 @@ import { PLATFORM, SNAPSHOT_INITIALIZATION } from "./constants"
 import { DiffVirtualProvider } from "../DiffVirtualProvider"
 import { buildWebviewHtml } from "../utils"
 import { openFileInEditor, getWorkspaceRoot } from "../review-utils"
-import { TelemetryProxy, type TelemetryEventName } from "../services/telemetry"
 import type { AutoApproveController } from "../commands/toggle-auto-approve"
 import type { RemoteStatusService } from "../services/RemoteStatusService"
 
@@ -307,8 +306,8 @@ export class VscodeHost implements Host {
     void vscode.env.clipboard.writeText(text)
   }
 
-  capture(event: string, properties?: Record<string, unknown>): void {
-    TelemetryProxy.capture(event as TelemetryEventName, properties)
+  capture(_event: string, _properties?: Record<string, unknown>): void {
+    // Telemetry disabled
   }
 
   openExternal(url: string): void {

@@ -22,12 +22,7 @@ import { buildWebviewHtml, getWebviewFontSize, isCursorHost } from "./utils"
 import { saveImage } from "./kilo-provider/save-image"
 import { handleEditorAction } from "./kilo-provider/editor-actions"
 import { exportTranscript } from "./kilo-provider/export-transcript"
-import {
-  TelemetryProxy,
-  type TelemetryPropertiesProvider,
-  pushTelemetryState,
-  watchTelemetryState,
-} from "./services/telemetry"
+
 import {
   sessionToWebview,
   indexProvidersById,
@@ -320,7 +315,7 @@ type ContextRequestMessage =
   | { type: "requestFilePicker"; requestId: string }
   | { type: "requestTerminalContext"; requestId: string; sessionID?: string }
 
-export class KiloProvider implements vscode.WebviewViewProvider, TelemetryPropertiesProvider {
+export class KiloProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "kilo-code.SidebarProvider"
   private readonly instanceId = crypto.randomUUID()
 
@@ -429,7 +424,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   private chatConfigDisposable: vscode.Disposable | null = null
   private throughputConfigDisposable: vscode.Disposable | null = null
   private autoApprovalReasonConfigDisposable: vscode.Disposable | null = null
-  private telemetryStateDisposable: vscode.Disposable | null = null
   private viewStateDisposable: vscode.Disposable | null = null
   private visibilityDisposable: vscode.Disposable | null = null
   private autoApproveBridge: ReturnType<typeof createAutoApproveBridge> | null = null
@@ -495,8 +489,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           : undefined,
       error: getErrorMessage,
     })
-
-    TelemetryProxy.getInstance().setProvider(this)
   }
 
   setRemoteService(service: RemoteStatusService): void {
@@ -578,18 +570,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
   public setDiffVirtualProvider(provider: import("./DiffVirtualProvider").DiffVirtualProvider): void {
     this.diffVirtualProvider = provider
-  }
-
-  getTelemetryProperties(): Record<string, unknown> {
-    return {
-      appName: "kilo-code",
-      appVersion: this.extensionVersion,
-      platform: "vscode",
-      editorName: vscode.env.appName,
-      vscodeVersion: vscode.version,
-      machineId: vscode.env.machineId,
-      vscodeIsTelemetryEnabled: vscode.env.isTelemetryEnabled,
-    }
   }
 
   /**
@@ -684,7 +664,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
 
     // Always push connection state first so the UI can render appropriately.
     this.postConnectionState()
-    pushTelemetryState((m) => this.postMessage(m))
 
     // Re-send ready so the webview can recover after refresh.
     if (serverInfo) {
@@ -1019,8 +998,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     this.throughputConfigDisposable = watchThroughputConfig((msg) => this.postMessage(msg))
     this.autoApprovalReasonConfigDisposable?.dispose()
     this.autoApprovalReasonConfigDisposable = watchAutoApprovalReasonConfig((msg) => this.postMessage(msg))
-    this.telemetryStateDisposable?.dispose()
-    this.telemetryStateDisposable = watchTelemetryState((msg) => this.postMessage(msg))
     this.webviewMessageDisposable = webview.onDidReceiveMessage(async (message) => {
       const intercepted = await interceptMessage(message, {
         workspaceDir: (sid) => this.getWorkspaceDirectory(sid ?? this.currentSession?.id),
@@ -1498,9 +1475,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           break
         case "resetReadNotifications":
           await resetReadNotifications(this.notificationsContext())
-          break
-        case "telemetry":
-          TelemetryProxy.capture(message.event, message.properties)
           break
         case "persistVariant": {
           const stored = this.extensionContext?.globalState.get<Record<string, string>>("variantSelections") ?? {}
@@ -5079,7 +5053,6 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     this.chatConfigDisposable?.dispose()
     this.throughputConfigDisposable?.dispose()
     this.autoApprovalReasonConfigDisposable?.dispose()
-    this.telemetryStateDisposable?.dispose()
     this.autoApproveBridge?.dispose()
     this.visibleTaskStreams.clear()
     this.streams.dispose()
