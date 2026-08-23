@@ -3,7 +3,7 @@ import type { KiloClient, GlobalEvent } from "@kilocode/sdk/v2/client"
 export type WirePayload = GlobalEvent["payload"]
 type Flat<T> = T extends {
   type: "sync"
-  syncEvent: infer E extends { type: string; id: string; seq: number; aggregateID: string; data: unknown }
+  syncEvent: infer E extends { type: string; id: unknown; seq: number; aggregateID: string; data: unknown }
 }
   ? { type: "sync"; name: E["type"]; id: E["id"]; seq: E["seq"]; aggregateID: E["aggregateID"]; data: E["data"] }
   : never
@@ -166,7 +166,7 @@ export class SdkSSEAdapter {
 
       try {
         console.log("[Kilo New] SSE: 🎬 Calling SDK global.event()...")
-        const events = await this.client.global.event({
+        const events = (await this.client.global.event({
           signal: attempt.signal,
           // Disable SDK-internal retries — consumeLoop handles reconnection
           // with its own outer while-loop. Without this the SDK's infinite
@@ -185,7 +185,7 @@ export class SdkSSEAdapter {
             console.error("[Kilo New] SSE: ❌ SDK SSE error callback:", error)
             this.notifyError(error instanceof Error ? error : new Error(String(error)))
           },
-        })
+        })) as unknown as { stream: AsyncGenerator<GlobalEvent> }
 
         console.log("[Kilo New] SSE: ⏳ Waiting for first stream event")
         this.resetHeartbeat(attempt)

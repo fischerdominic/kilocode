@@ -182,14 +182,14 @@ export async function collectProjectSessions(
   const out: ProjectSessionView[] = []
   for (const { dir, worktreeId, items } of byDir) {
     for (const s of items) {
-      if (seen.has(s.id)) continue
-      seen.add(s.id)
-      sessions.setSessionDirectory(s.id, dir)
+      if (seen.has(s.id as string)) continue
+      seen.add(s.id as string)
+      sessions.setSessionDirectory(s.id as string, dir)
       // Register an exact route for every live session. Re-registering a
       // managed session (already routed by registerProjectSessions) with the
       // same directory is a no-op; a different directory would mean the
       // session moved worktrees, and the latest registration wins.
-      sessions.registerSessionRoute?.({ projectId: ctx.id, sessionId: s.id }, dir, generation)
+      sessions.registerSessionRoute?.({ projectId: ctx.id, sessionId: s.id as string }, dir, generation)
       if (worktreeId) {
         sessions.registerWorktreeRoute?.({ projectId: ctx.id, worktreeId }, dir, generation)
       }

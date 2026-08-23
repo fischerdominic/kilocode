@@ -26,14 +26,19 @@ function confirm(state: State, dir: string, desired: boolean) {
   return state
 }
 
+function cleanSandbox(state: { reason?: string | null | undefined; [k: string]: unknown }): State {
+  return { ...state, reason: state.reason ?? undefined } as State
+}
+
 /** Ensure a new session uses the selected sandbox state before its first prompt. */
 export async function ensureSandbox(client: KiloClient, sid: string, dir: string, desired: boolean): Promise<State> {
   const sandbox = client.sandbox
   const { data: current } = await sandbox.status({ sessionID: sid, directory: dir }, { throwOnError: true })
-  routed(current, dir)
-  if (current.enabled === desired) return confirm(current, dir, desired)
-  if (!current.available) throw unavailable(current)
+  const clean = cleanSandbox(current)
+  routed(clean, dir)
+  if (clean.enabled === desired) return confirm(clean, dir, desired)
+  if (!clean.available) throw unavailable(clean)
 
   const { data: next } = await sandbox.toggle({ sessionID: sid, directory: dir }, { throwOnError: true })
-  return confirm(next, dir, desired)
+  return confirm(cleanSandbox(next), dir, desired)
 }

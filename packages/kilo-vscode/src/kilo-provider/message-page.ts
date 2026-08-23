@@ -31,7 +31,7 @@ export async function fetchMessagePage(
   const read = async (before?: string) => {
     const result = await retry(() =>
       client.session.messages(
-        { sessionID: input.sessionID, directory: input.workspaceDir, limit: input.limit, before },
+        { sessionID: input.sessionID, directory: input.workspaceDir, limit: input.limit as unknown as string, before },
         { throwOnError: true, signal: input.signal },
       ),
     )
@@ -44,7 +44,7 @@ export async function fetchMessagePage(
     const header = result.response.headers.get("X-Next-Cursor")
     const cursor = full
       ? undefined
-      : (header ?? (items.length >= input.limit && items[0] ? synthesizeCursor(items[0]) : undefined))
+      : (header ?? (items.length >= input.limit && items[0] ? synthesizeCursor({ info: { id: items[0].info.id as string, time: { created: items[0].info.time.created as number } } }) : undefined))
     return { items, cursor }
   }
 

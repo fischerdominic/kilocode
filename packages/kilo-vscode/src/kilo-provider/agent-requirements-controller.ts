@@ -164,7 +164,7 @@ export class AgentRequirementsController {
     }
     if (this.generations.get(key) !== token) throw new Error("Agent requirement check was superseded")
 
-    const result = this.apply(response.data, directory)
+    const result = this.apply(response.data as BackendAgentRequirementResult, directory)
     this.cache.set(key, result)
     this.generations.delete(key)
     return result

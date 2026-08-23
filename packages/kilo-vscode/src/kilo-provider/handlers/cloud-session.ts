@@ -44,7 +44,7 @@ export async function handleRequestCloudSessions(
   try {
     const result = await ctx.client.kilo.cloudSessions({
       cursor: message.cursor,
-      limit: message.limit,
+      limit: message.limit as string | null | undefined,
       gitUrl: message.gitUrl,
     })
 
@@ -168,7 +168,7 @@ export async function handleImportAndSend(
 
   // Track the new local session
   ctx.currentSession = session
-  ctx.trackedSessionIds.add(session.id)
+  ctx.trackedSessionIds.add(session.id as string)
 
   // Notify webview of the import success
   ctx.postMessage({
@@ -182,7 +182,7 @@ export async function handleImportAndSend(
   try {
     await run(messageID, "Cloud import send", async () => {
       if (messageID) {
-        ctx.connectionService.recordMessageSessionId(messageID, session.id)
+        ctx.connectionService.recordMessageSessionId(messageID, session.id as string)
       }
 
       if (command) {

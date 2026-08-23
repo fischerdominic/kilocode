@@ -30,10 +30,10 @@ export function createScriptTerminalRuntime(input: Input) {
     log: (msg) => input.output.appendLine(`[RunScript] ${msg}`),
   })
   const event = input.connection.onEventFiltered(
-    (value) => (value.type === "pty.exited" || value.type === "pty.deleted") && manager.owns(value.properties.id),
+    (value) => (value.type === "pty.exited" || value.type === "pty.deleted") && manager.owns(value.properties.id as string),
     (value) => {
-      if (value.type === "pty.exited") manager.exited(value.properties.id, value.properties.exitCode)
-      if (value.type === "pty.deleted") manager.deleted(value.properties.id)
+      if (value.type === "pty.exited") manager.exited(value.properties.id as string, value.properties.exitCode as unknown as number)
+      if (value.type === "pty.deleted") manager.deleted(value.properties.id as string)
     },
   )
   const connection = input.connection.onStateChange((state) => {

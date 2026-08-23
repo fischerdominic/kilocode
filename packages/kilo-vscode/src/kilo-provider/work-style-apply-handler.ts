@@ -27,7 +27,7 @@ async function apply(connection: KiloConnectionService, directory: string, style
     },
     patch: async (config) => {
       const client = await connection.getClientAsync(directory)
-      await client.global.config.update({ config: config as Config }, { throwOnError: true })
+      await client.global.config.update({ config1: config as Config }, { throwOnError: true })
     },
   })
 }

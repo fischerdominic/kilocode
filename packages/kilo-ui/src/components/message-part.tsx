@@ -459,7 +459,7 @@ export function AssistantParts(props: {
       return part.id
     }
     const parts = props.messages.flatMap((message) => {
-      const filtered = list(data.store.part?.[message.id], emptyParts).filter((part) =>
+      const filtered = list(data.store.part?.[message.id as string], emptyParts).filter((part) =>
         renderable(part, props.showReasoningSummaries ?? true),
       )
       // Ensure reasoning parts appear before text parts within each message.
@@ -590,7 +590,7 @@ export function AssistantParts(props: {
             if (parts.length === 0 && ctxPartsPrev.length > 0) return ctxPartsPrev
             const result: ToolPart[] = []
             for (const item of parts) {
-              const k = item.part.callID || item.part.id
+              const k = item.part.callID || (item.part.id as string)
               const cached = ctxPartsCache.get(k)
               if (cached) {
                 result.push(cached)
@@ -856,7 +856,7 @@ export function UserMessageDisplay(props: {
                   data-queued={props.queued ? "" : undefined}
                   onClick={() => {
                     if (file.mime.startsWith("image/") && file.url) {
-                      openImagePreview(file.url, file.filename)
+                      openImagePreview(file.url, file.filename as string | undefined)
                     }
                   }}
                 >
@@ -979,7 +979,7 @@ export function UserMessageDisplay(props: {
 
 function HighlightedText(props: { text: string; references: FilePart[]; agents: AgentPart[] }) {
   const segments = createMemo(() => {
-    return buildHighlightedTextSegments(props.text, props.references, props.agents)
+    return buildHighlightedTextSegments(props.text, props.references.filter((r) => r.source) as any, props.agents as any)
   })
 
   const data = useData()
@@ -1253,7 +1253,7 @@ PART_MAPPING["tool"] = function ToolPartDisplay(props) {
                     component={render()}
                     input={input()}
                     tool={part.tool}
-                    partID={part.id}
+                    partID={part.id as string}
                     callID={part.callID}
                     metadata={meta()}
                     partMetadata={top()}
@@ -1327,7 +1327,7 @@ PART_MAPPING["tool"] = function ToolPartDisplay(props) {
                 component={render()}
                 input={input()}
                 tool={part.tool}
-                partID={part.id}
+                partID={part.id as string}
                 callID={part.callID}
                 metadata={meta()}
                 partMetadata={top()}
@@ -1442,7 +1442,7 @@ PART_MAPPING["text"] = function TextPartDisplay(props) {
 
   const dispatch = (el: HTMLElement, p: string) => {
     if (!data.validateFiles) return
-    void checkFile(props.message.sessionID, p, data.validateFiles).then((exists) => {
+    void checkFile(props.message.sessionID as string, p, data.validateFiles).then((exists) => {
       // `undefined` means validation could not be confirmed (e.g. every retry
       // timed out) — leave the candidate untouched so a later pass can retry it
       // instead of demoting a possibly-real file to plain text.
@@ -1567,7 +1567,7 @@ PART_MAPPING["text"] = function TextPartDisplay(props) {
       const column = colAttr ? parseInt(colAttr, 10) : undefined
       // Scope the open to the session this message was rendered for, matching
       // how the candidate was validated — see checkFile / validateFiles.
-      data.openFile(path, line, column, props.message.sessionID)
+      data.openFile(path, line, column, props.message.sessionID as string)
       return
     }
     // Handle markdown links whose href looks like a relative file path
@@ -1578,7 +1578,7 @@ PART_MAPPING["text"] = function TextPartDisplay(props) {
       const result = extractFilePathFromHref(href)
       if (!result) return
       e.preventDefault()
-      data.openFile(result.path, result.line, result.column, props.message.sessionID)
+      data.openFile(result.path, result.line, result.column, props.message.sessionID as string)
     }
   }
 
@@ -1586,7 +1586,7 @@ PART_MAPPING["text"] = function TextPartDisplay(props) {
     <Show when={throttledText() && showSyntheticPart()}>
       <div data-component="text-part">
         <div data-slot="text-part-body" ref={bodyRef}>
-          <Markdown text={throttledText()} cacheKey={part().id} streaming={streaming()} onClick={handleMarkdownClick} />
+          <Markdown text={throttledText()} cacheKey={part().id as string} streaming={streaming()} onClick={handleMarkdownClick} />
         </div>
         <Show when={showCopy()}>
           <div data-slot="assistant-copy-wrapper">
@@ -2066,7 +2066,7 @@ ToolRegistry.register({
           <div data-slot="tool-read-images">
             <For each={images()}>
               {(file) => (
-                <div data-slot="tool-read-image" onClick={() => preview(file.url, file.filename)}>
+                <div data-slot="tool-read-image" onClick={() => preview(file.url, file.filename as string | undefined)}>
                   <img
                     data-slot="tool-read-image-img"
                     src={file.url}

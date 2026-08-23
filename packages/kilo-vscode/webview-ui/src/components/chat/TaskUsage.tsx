@@ -88,14 +88,14 @@ export const TaskUsage: Component<TaskUsageProps> = (props) => {
                           {modelUsageName(model, provider.providers())}
                         </div>
                         <div class="task-header-usage-meta">
-                          {model.steps} {model.steps === 1 ? "step" : "steps"} · {cost(model.cost)}
+                          {Number(model.steps ?? 0)} {Number(model.steps ?? 0) === 1 ? "step" : "steps"} · {cost(Number(model.cost ?? 0))}
                         </div>
                         <div class="task-header-usage-meta">
-                          In {count(model.tokens.input)} · Out {count(model.tokens.output)} · Reason{" "}
-                          {count(model.tokens.reasoning)}
+                          In {count((model.tokens as { input?: number } | undefined)?.input ?? 0)} · Out {count((model.tokens as { output?: number } | undefined)?.output ?? 0)} · Reason{" "}
+                          {count((model.tokens as { reasoning?: number } | undefined)?.reasoning ?? 0)}
                         </div>
                         <div class="task-header-usage-meta">
-                          Cache R {count(model.tokens.cache.read)} · W {count(model.tokens.cache.write)} · Hit Rate{" "}
+                          Cache R {count((model.tokens as { cache?: { read?: number; write?: number } } | undefined)?.cache?.read ?? 0)} · W {count((model.tokens as { cache?: { read?: number; write?: number } } | undefined)?.cache?.write ?? 0)} · Hit Rate{" "}
                           {cacheRate(model)}
                         </div>
                       </div>

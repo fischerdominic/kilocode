@@ -901,22 +901,22 @@ export class KiloConnectionService {
 
   private handlePermissionEvent(event: SSEPayload, directory?: string): void {
     if (event.type === "permission.asked" && directory) {
-      this.recordPermissionDirectory(event.properties.id, directory)
+      this.recordPermissionDirectory(event.properties.id as string, directory)
       return
     }
     if (event.type === "permission.replied") {
-      this.clearPermissionDirectory(event.properties.requestID)
+      this.clearPermissionDirectory(event.properties.requestID as string)
     }
   }
 
   private handleQuestionEvent(event: SSEPayload, directory?: string): void {
     if (event.type === "question.asked" && directory) {
       this.questionRevision += 1
-      this.recordQuestionDirectory(event.properties.id, directory)
+      this.recordQuestionDirectory(event.properties.id as string, directory)
       return
     }
     if (event.type === "question.replied" || event.type === "question.rejected") {
-      this.clearQuestionDirectory(event.properties.requestID)
+      this.clearQuestionDirectory(event.properties.requestID as string)
     }
   }
 }
@@ -926,7 +926,7 @@ async function drainSuggestions(client: KiloClient, directory: string): Promise<
   if (err) throw new Error(`Failed to list suggestions for ${directory}: ${String(err)}`)
   if (data) {
     for (const s of data) {
-      const { error } = await client.suggestion.dismiss({ requestID: s.id, directory })
+      const { error } = await client.suggestion.dismiss({ requestID: s.id as string, directory })
       if (error) throw new Error(`Failed to dismiss suggestion ${s.id}: ${String(error)}`)
     }
   }

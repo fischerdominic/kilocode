@@ -88,7 +88,7 @@ export function normalize(diff: ReviewDiff): ViewDiff {
     after: view.after,
     additions: diff.additions,
     deletions: diff.deletions,
-    status: diff.status,
+    status: diff.status === null ? undefined : diff.status,
     fileDiff: fileDiffFor(diff, view),
   }
 }

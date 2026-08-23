@@ -189,7 +189,7 @@ export class NotebookBridge {
       if (accepted) this.remember(this.settled, request.id)
       return
     }
-    const origin = { directory, root, sessionID: request.sessionID }
+    const origin = { directory, root, sessionID: request.sessionID as string }
     this.rememberOrigin(request.id, origin)
     this.start(request, origin)
   }
@@ -258,22 +258,22 @@ export class NotebookBridge {
     signal: AbortSignal,
   ): Promise<NotebookResult> {
     if (request.operation === "read") {
-      return adapter.read({ path: request.path, directory, includeOutputs: request.includeOutputs })
+      return adapter.read({ path: request.path as string, directory, includeOutputs: request.includeOutputs })
     }
     if (request.operation === "edit") {
       return adapter.edit({
-        path: request.path,
+        path: request.path as string,
         directory,
-        ...(request.expectedRevision !== undefined ? { expectedRevision: request.expectedRevision } : {}),
-        index: request.index,
-        edit: request.edit,
+        ...(request.expectedRevision !== undefined ? { expectedRevision: request.expectedRevision as unknown as string } : {}),
+        index: request.index as number,
+        edit: request.edit as any,
       })
     }
     return adapter.execute({
-      path: request.path,
+      path: request.path as string,
       directory,
-      expectedRevision: request.expectedRevision,
-      index: request.index,
+      expectedRevision: request.expectedRevision as unknown as string,
+      index: request.index as number,
       signal,
     })
   }

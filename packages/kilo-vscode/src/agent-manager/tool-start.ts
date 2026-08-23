@@ -143,22 +143,24 @@ async function local(deps: ToolDeps, client: KiloClient, task: ToolTask, directo
   const { data } = await client.session.create(
     {
       directory: target,
-      platform: PLATFORM,
-      metadata,
-      ...(source?.sandboxInheritanceToken ? { sandboxInheritanceToken: source.sandboxInheritanceToken } : {}),
+      body: {
+        platform: PLATFORM,
+        metadata,
+        ...(source?.sandboxInheritanceToken ? { sandboxInheritanceToken: source.sandboxInheritanceToken } : {}),
+      },
     },
     { throwOnError: true },
   )
   const session = data
-  state.addSession(session.id, wt?.id ?? null)
-  if (wt) deps.registerWorktreeSession(session.id, wt.path)
+  state.addSession(session.id as string, wt?.id ?? null)
+  if (wt) deps.registerWorktreeSession(session.id as string, wt.path)
   deps.push()
   deps.getPanel()?.sessions.registerSession(session)
-  if (wt) deps.post({ type: "agentManager.sessionAdded", sessionId: session.id, worktreeId: wt.id })
-  await prompt(client, session.id, target, task)
+  if (wt) deps.post({ type: "agentManager.sessionAdded", sessionId: session.id as string, worktreeId: wt.id })
+  await prompt(client, session.id as string, target, task)
   deps.capture("Agent Manager Session Started", {
     source: PLATFORM,
-    sessionId: session.id,
+    sessionId: session.id as string,
     tool: true,
     mode: "local",
     worktreeId: wt?.id,
@@ -204,14 +206,14 @@ async function worktree(
     await deps.cleanupWorktree(created.worktree.id, created.result.path)
     return false
   }
-  state.addSession(session.id, created.worktree.id)
-  deps.registerWorktreeSession(session.id, created.result.path)
-  deps.notifyReady(session.id, created.result, created.worktree.id)
+  state.addSession(session.id as string, created.worktree.id)
+  deps.registerWorktreeSession(session.id as string, created.result.path)
+  deps.notifyReady(session.id as string, created.result, created.worktree.id)
   deps.getPanel()?.sessions.registerSession(session)
-  await prompt(client, session.id, created.result.path, task)
+  await prompt(client, session.id as string, created.result.path, task)
   deps.capture("Agent Manager Session Started", {
     source: PLATFORM,
-    sessionId: session.id,
+    sessionId: session.id as string,
     worktreeId: created.worktree.id,
     branch: created.result.branch,
     tool: true,

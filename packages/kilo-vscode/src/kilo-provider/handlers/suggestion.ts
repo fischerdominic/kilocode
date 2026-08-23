@@ -21,9 +21,9 @@ export interface SuggestionContext {
 
 export function recoverableSuggestions(items: RecoverableSuggestion[], tracked: Set<string>, seen: Set<string>) {
   return items.filter((item) => {
-    if (seen.has(item.id)) return false
-    seen.add(item.id)
-    return tracked.has(item.sessionID)
+    if (seen.has(item.id as string)) return false
+    seen.add(item.id as string)
+    return tracked.has(item.sessionID as string)
   })
 }
 

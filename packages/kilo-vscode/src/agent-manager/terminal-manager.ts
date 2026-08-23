@@ -92,7 +92,7 @@ export class TerminalManager {
     }
     const entry: Entry = {
       terminalId: params.terminalId,
-      ptyID: data.id,
+      ptyID: data.id as string,
       worktreeId: params.worktreeId,
       cwd: params.cwd,
       title: data.title ?? params.title,
@@ -289,7 +289,7 @@ export class TerminalManager {
           size: { cols, rows },
         })
       }
-      entry.ptyID = info.id
+      entry.ptyID = info.id as string
       await client.pty.remove({ directory: entry.cwd, ptyID: old }).catch((error: unknown) => {
         this.deps.log(`Failed to remove exited PTY (${old}): ${error instanceof Error ? error.message : String(error)}`)
       })

@@ -90,18 +90,18 @@ export async function fetchAndSendPendingQuestions(
         scanned.add(dir)
         if (!data) continue
         for (const q of data) {
-          if (seen.has(q.id)) continue
-          seen.add(q.id)
-          if (!ctx.trackedSessionIds.has(q.sessionID)) continue
+          if (seen.has(q.id as string)) continue
+          seen.add(q.id as string)
+          if (!ctx.trackedSessionIds.has(q.sessionID as string)) continue
           pending.push({ question: q, dir })
         }
       }
       if (ctx.getQuestionRevision() !== revision) continue
       for (const item of pending) {
-        ctx.recordQuestionDirectory(item.question.id, item.dir)
+        ctx.recordQuestionDirectory(item.question.id as string, item.dir)
         // The omitted request is mid-reply; its card is still visible, so
         // reposting it would only churn the webview.
-        if (item.question.id === omit) continue
+        if (item.question.id as string === omit) continue
         ctx.postMessage({
           type: "questionRequest",
           question: {

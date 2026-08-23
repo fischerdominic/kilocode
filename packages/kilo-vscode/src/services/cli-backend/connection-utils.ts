@@ -20,7 +20,7 @@ export function resolveEventSessionId(
   }
 
   void lookupMessageSessionId
-  if (event.type === "sandbox.status.changed") return event.properties.sessionID
+  if (event.type === "sandbox.status.changed") return event.properties.sessionID as string | undefined
   return resolveTransientSessionId(event)
 }
 
@@ -29,9 +29,9 @@ function resolveSyncSessionId(
   onMessageUpdated?: (messageId: string, sessionId: string) => void,
 ): string | undefined {
   if (event.name === "message.updated.1") {
-    onMessageUpdated?.(event.data.info.id, event.data.sessionID)
+    onMessageUpdated?.(event.data.info.id as string, event.data.sessionID as string)
   }
-  return event.data.sessionID
+  return event.data.sessionID as string | undefined
 }
 
 function resolveTransientSessionId(event: TransientPayload): string | undefined {
@@ -55,7 +55,7 @@ function resolveTransientSessionId(event: TransientPayload): string | undefined 
     case "session.network.replied":
     case "session.network.rejected":
     case "session.network.restored":
-      return event.properties.sessionID
+      return event.properties.sessionID as string | undefined
     default:
       return undefined
   }

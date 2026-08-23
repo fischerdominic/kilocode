@@ -44,16 +44,16 @@ export async function handleSessionSearch(input: Input): Promise<void> {
 
   try {
     const res = await client.experimental.session.list(
-      { worktrees: true, roots: true, directory: dir, limit: 50 },
+      { worktrees: "true", roots: "true", directory: dir, limit: 50 as unknown as string },
       { throwOnError: true },
     )
     const sessions: Item[] = res.data
-      .filter((session) => session.id !== input.exclude && session.title)
+      .filter((session) => (session.id as string) !== input.exclude && session.title)
       .map((session) => ({
-        id: session.id,
+        id: session.id as string,
         title: session.title,
-        updated: session.time.updated,
-        worktreeName: session.worktreeName,
+        updated: session.time.updated as number,
+        worktreeName: session.worktreeName ?? undefined,
       }))
     input.post({ type: "sessionSearchResult", sessions, requestId: input.message.requestId })
   } catch (err) {

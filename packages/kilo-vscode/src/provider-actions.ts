@@ -53,9 +53,11 @@ function same(a: unknown, b: unknown): boolean {
 /** Fetch provider availability and authentication state without exposing stored credentials. */
 export async function fetchProviderData(client: KiloClient, dir: string) {
   const authRequest =
-    typeof client.provider.auth === "function"
-      ? client.provider
-          .auth({ directory: dir }, { throwOnError: true })
+    typeof (client.provider as unknown as { auth?: (params: unknown) => Promise<unknown> }).auth === "function"
+      ? ((client.provider as unknown as { auth: (params: { directory?: string | null } | undefined, opts?: unknown) => Promise<unknown> }).auth(
+          { directory: dir },
+          { throwOnError: true },
+        ) as Promise<{ data?: unknown }>)
           .then((r) => r.data ?? {})
           .catch(() => ({}))
       : Promise.resolve({})
@@ -145,7 +147,7 @@ export function validateRecents(raw: unknown): Array<{ providerID: string; model
   return raw
     .filter(isModelSelection)
     .slice(0, 5)
-    .map((r) => ({ providerID: r.providerID, modelID: r.modelID }))
+        .map((r: { providerID: string; modelID: string }) => ({ providerID: r.providerID, modelID: r.modelID }))
 }
 
 /** Validate and sanitize favorite model selections from untrusted sources. */
@@ -241,11 +243,11 @@ async function refreshConfig(ctx: ActionContext, setCachedConfig: SetCachedConfi
 }
 
 async function saveGlobal(ctx: ActionContext, config: Config) {
-  await ctx.client.global.config.update({ config }, { throwOnError: true })
+    await ctx.client.global.config.update({ config1: config }, { throwOnError: true })
 }
 
 async function saveProject(ctx: ActionContext, config: Config) {
-  await ctx.client.config.update({ config, directory: ctx.workspaceDir }, { throwOnError: true })
+  await ctx.client.config.update({ config1: config, directory: ctx.workspaceDir }, { throwOnError: true })
 }
 
 async function removeAuth(ctx: ActionContext, id: string, configured: boolean) {
@@ -265,7 +267,7 @@ async function removeCustom(ctx: ActionContext, id: string, global: Config, merg
     tasks.push(
       saveGlobal(ctx, {
         provider: { [id]: null },
-        disabled_providers: disabledWithout(global.disabled_providers, id),
+        disabled_providers: disabledWithout(global.disabled_providers ?? undefined, id),
       }),
     )
   }
@@ -282,7 +284,7 @@ async function disableConfigured(ctx: ActionContext, id: string, config: Config)
 }
 
 async function enableConfigured(ctx: ActionContext, id: string, config: Config) {
-  const disabled = disabledWithout(config.disabled_providers, id)
+  const disabled = disabledWithout(config.disabled_providers ?? undefined, id)
   if (disabled.length === (config.disabled_providers ?? []).length) return
   await saveGlobal(ctx, { disabled_providers: disabled })
 }
@@ -317,7 +319,7 @@ export async function authorizeProviderOAuth(
   const id = validateID(ctx, requestId, providerID, "authorize")
   if (!id) return
   try {
-    const { data: authorization } = await ctx.client.provider.oauth.authorize(
+    const { data: authorization } = await (ctx.client.provider as unknown as { oauth: { authorize: (params: unknown, opts?: unknown) => Promise<{ data?: unknown }> } }).oauth.authorize(
       { providerID: id, method, directory: ctx.workspaceDir },
       { throwOnError: true },
     )
@@ -347,7 +349,7 @@ export async function completeProviderOAuth(
   const id = validateID(ctx, requestId, providerID, "connect")
   if (!id) return
   try {
-    await ctx.client.provider.oauth.callback(
+    await (ctx.client.provider as unknown as { oauth: { callback: (params: unknown, opts?: unknown) => Promise<unknown> } }).oauth.callback(
       { providerID: id, method, code, directory: ctx.workspaceDir },
       { throwOnError: true },
     )
@@ -381,7 +383,7 @@ export async function disconnectProvider(
     const configured = !!cfg || !!effective
     const custom = customProvider(cfg) || customProvider(effective)
     const { response } = await fetchProviderData(ctx.client, ctx.workspaceDir)
-    const active = response.all.find((item) => item.id === id)
+    const active = response.all.find((item: { id?: string; source?: string }) => item.id === id)
     const oauth = active?.source === "custom" && configured && !custom
 
     // Config-sourced providers may not have auth store entries because
@@ -445,7 +447,7 @@ export async function saveCustomProvider(
     const patch = withCustomProviderDeletions(existing, sanitized.value)
     const { data: updated } = await ctx.client.global.config.update(
       {
-        config: {
+        config1: {
           provider: { [id]: patch },
           disabled_providers: nextDisabled,
         },

@@ -12,7 +12,8 @@ export function isRenderable(part: Part, message: AssistantMessage): boolean {
     return true
   }
   if (part.type === "text") {
-    return !snapshotProgress(part) && !!part.text?.trim() && !(part.synthetic && message?.time.completed)
+    const synthetic = part.synthetic ?? undefined
+    return !snapshotProgress(part as { type?: string; text?: string; synthetic?: boolean }) && !!part.text?.trim() && !(synthetic && message?.time.completed)
   }
   if (part.type === "reasoning") return !!part.text?.replace("[REDACTED]", "").trim()
   return !!PART_MAPPING[part.type]

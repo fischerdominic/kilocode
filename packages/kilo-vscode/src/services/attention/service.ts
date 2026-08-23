@@ -52,7 +52,7 @@ export class AttentionService implements vscode.Disposable {
     if (event.type === "permission.asked" || event.type === "permission.replied") {
       return this.permission(event, directory)
     }
-    if (event.type === "session.deleted") return this.remove(event.properties.sessionID)
+    if (event.type === "session.deleted") return this.remove(event.properties.sessionID as string)
     if (event.type === "session.status") return this.status(event)
     if (event.type === "session.turn.close") return this.close(event)
     if (event.type === "session.error") return this.error(event)
@@ -60,7 +60,7 @@ export class AttentionService implements vscode.Disposable {
 
   private sync(event: Sync) {
     if (event.name !== "session.deleted.1") return
-    this.remove(event.data.sessionID)
+    this.remove(event.data.sessionID as string)
   }
 
   private remove(sessionID: string) {
@@ -70,20 +70,20 @@ export class AttentionService implements vscode.Disposable {
 
   private question(event: Question) {
     if (event.type !== "question.asked") {
-      this.questions.delete(event.properties.requestID)
+      this.questions.delete(event.properties.requestID as string)
       return
     }
-    if (this.questions.has(event.properties.id)) return
-    this.questions.add(event.properties.id)
+    if (this.questions.has(event.properties.id as string)) return
+    this.questions.add(event.properties.id as string)
     this.notify("question")
   }
 
   private permission(event: Permission, directory?: string) {
     if (event.type !== "permission.asked") {
-      this.permissions.delete(event.properties.requestID)
+      this.permissions.delete(event.properties.requestID as string)
       return
     }
-    const id = event.properties.id
+    const id = event.properties.id as string
     if (this.permissions.has(id)) return
     this.permissions.add(id)
     const alert = () => {
@@ -99,14 +99,14 @@ export class AttentionService implements vscode.Disposable {
   }
 
   private status(event: Status) {
-    const sessionID = event.properties.sessionID
+    const sessionID = event.properties.sessionID as string
     if (event.properties.status.type !== "busy" && event.properties.status.type !== "retry") return
     this.active.add(sessionID)
     this.errored.delete(sessionID)
   }
 
   private close(event: Close) {
-    const sessionID = event.properties.sessionID
+    const sessionID = event.properties.sessionID as string
     if (!this.active.delete(sessionID)) return
     if (this.errored.delete(sessionID)) return
     if (event.properties.reason !== "completed") return
@@ -115,7 +115,7 @@ export class AttentionService implements vscode.Disposable {
   }
 
   private error(event: Error) {
-    const sessionID = event.properties.sessionID
+    const sessionID = event.properties.sessionID as string
     if (!sessionID || !this.active.has(sessionID)) return
     this.errored.add(sessionID)
     if (event.properties.error?.name === "MessageAbortedError") return

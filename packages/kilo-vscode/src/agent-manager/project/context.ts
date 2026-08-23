@@ -177,7 +177,7 @@ export class ProjectContext {
   /** Replace the cached sidebar session list and mark it freshly listed. */
   setSessions(views: readonly ProjectSessionView[]): void {
     this.views = views
-    this.live = new Set(views.map((view) => view.id))
+    this.live = new Set(views.map((view) => view.id as string))
     this.listed = Date.now()
   }
 
@@ -194,7 +194,7 @@ export class ProjectContext {
   /** Insert or refresh one session in the cached list (creation, rename, fork). */
   upsertSession(view: ProjectSessionView): void {
     this.views = [view, ...this.views.filter((item) => item.id !== view.id)]
-    this.live.add(view.id)
+    this.live.add(view.id as string)
   }
 
   /** Drop one session from the cached list (deletion, close). */

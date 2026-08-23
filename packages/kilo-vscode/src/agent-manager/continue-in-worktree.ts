@@ -103,7 +103,7 @@ export async function forkSession(ctx: ContinueContext, sessionId: string, dir: 
   }
   try {
     const { data } = await client.session.fork({ sessionID: sessionId, directory: dir }, { throwOnError: true })
-    await recordForkHandoff({ client, sessionId: data.id, directory: dir }).catch((err) => {
+    await recordForkHandoff({ client, sessionId: data.id as string, directory: dir }).catch((err) => {
       ctx.log("Failed to record fork handoff:", getErrorMessage(err))
     })
     return { ok: true, value: data }
@@ -121,15 +121,15 @@ export function registerSession(
   sourceId: string,
 ): void {
   const state = ctx.getStateManager()
-  if (state) state.addSession(session.id, worktreeId)
-  ctx.registerWorktreeSession(session.id, result.path)
+  if (state) state.addSession(session.id as string, worktreeId)
+  ctx.registerWorktreeSession(session.id as string, result.path)
   // Push state before registerSession so the webview knows this is a worktree
   // session before receiving the sessionCreated message. Without this ordering,
   // the sessionCreated handler would add the session to the local tab because
   // managedSessions (and thus worktreeSessionIds) hadn't been updated yet.
-  ctx.notifyReady(session.id, result, worktreeId)
+  ctx.notifyReady(session.id as string, result, worktreeId)
   ctx.registerSession(session)
-  ctx.capture("Continue in Worktree", { source: PLATFORM, sessionId: session.id, worktreeId })
+  ctx.capture("Continue in Worktree", { source: PLATFORM, sessionId: session.id as string, worktreeId })
   ctx.log(`Continued sidebar session ${sourceId} → worktree ${worktreeId} (session ${session.id})`)
 }
 

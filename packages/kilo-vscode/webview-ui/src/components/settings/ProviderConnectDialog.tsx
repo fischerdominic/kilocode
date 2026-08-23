@@ -5,7 +5,7 @@ import { Select } from "@kilocode/kilo-ui/select"
 import { Spinner } from "@kilocode/kilo-ui/spinner"
 import { TextField } from "@kilocode/kilo-ui/text-field"
 import { showToast } from "@kilocode/kilo-ui/toast"
-import type { ProviderAuthAuthorization, ProviderAuthMethod } from "@kilocode/sdk/v2/client"
+import type { ProviderAuthAuthorization, ProviderAuthMethod } from "../../types/provider-auth"
 import { Component, For, Match, Show, Switch, createMemo, createSignal, onCleanup, onMount } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useLanguage } from "../../context/language"
@@ -124,7 +124,7 @@ const ProviderConnectDialog: Component<ProviderConnectDialogProps> = (props) => 
     return index === undefined ? undefined : methods()[index]
   })
   const bedrockKeys = () =>
-    props.providerID === "amazon-bedrock" && method()?.prompts?.some((prompt) => prompt.key === "secretAccessKey")
+    props.providerID === "amazon-bedrock" && method()?.prompts?.some((prompt: Prompt) => prompt.key === "secretAccessKey")
   const vertexCredentials = () => props.providerID === "google-vertex" && method()?.type === "api"
 
   function optional(prompt: Prompt) {
@@ -343,7 +343,7 @@ const ProviderConnectDialog: Component<ProviderConnectDialogProps> = (props) => 
   const ApiView: Component = () => {
     const [value, setValue] = createSignal("")
     const [fields, setFields] = createStore<Record<string, string>>({})
-    const prompts = createMemo(() => method()?.prompts?.filter((prompt) => visible(prompt, fields)) ?? [])
+    const prompts = createMemo(() => method()?.prompts?.filter((prompt: Prompt) => visible(prompt, fields)) ?? [])
 
     function apiKeyDescription() {
       if (bedrockKeys()) {
@@ -484,10 +484,10 @@ const ProviderConnectDialog: Component<ProviderConnectDialogProps> = (props) => 
                     {promptLabel(prompt)}
                   </label>
                   <Select
-                    options={prompt.type === "select" ? prompt.options : []}
+                    options={prompt.type === "select" ? prompt.options ?? [] : []}
                     current={
                       prompt.type === "select"
-                        ? prompt.options.find((item) => item.value === fields[prompt.key])
+                        ? (prompt.options ?? []).find((item: { label: string; value: string; hint?: string }) => item.value === fields[prompt.key])
                         : undefined
                     }
                     value={(item) => item.value}

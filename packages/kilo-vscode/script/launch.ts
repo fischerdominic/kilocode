@@ -394,10 +394,9 @@ async function launch() {
 
   const child = spawn(app, args, {
     cwd: workspace,
-    detached: !win,
+    detached: true,
     env,
     stdio: "ignore",
-    ...(win ? { shell: true } : {}),
   })
   child.unref()
 

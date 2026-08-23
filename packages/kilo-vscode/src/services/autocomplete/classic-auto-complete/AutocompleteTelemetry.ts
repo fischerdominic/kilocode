@@ -59,8 +59,8 @@ export class AutocompleteTelemetry {
   private firedUniqueKeys: Map<string, true> = new Map()
 
   private markSuggestionKeyAsFired(suggestionKey: string): void {
-    _getSuggestionKey({ text: "", startRow: 0, endRow: 0, startColumn: 0, endColumn: 0 } as FillInAtCursorSuggestion)
-    insertWithLRUEviction(this.firedUniqueKeys, suggestionKey, MAX_FIRED_UNIQUE_KEYS)
+    _getSuggestionKey({ text: "", prefix: "", suffix: "", scope: "" } as FillInAtCursorSuggestion)
+    insertWithLRUEviction(this.firedUniqueKeys, suggestionKey, true, MAX_FIRED_UNIQUE_KEYS)
   }
 
   /**

@@ -48,7 +48,7 @@ export const ErrorDisplay: Component<ErrorDisplayProps> = (props) => {
   })
 
   const errorText = createMemo(() => {
-    const msg = props.error.data?.message
+    const msg = (props.error.data as { message?: unknown } | undefined)?.message
     if (typeof msg === "string") return unwrapError(msg)
     if (msg === undefined || msg === null) return ""
     return unwrapError(String(msg))

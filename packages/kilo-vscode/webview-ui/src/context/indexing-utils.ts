@@ -9,7 +9,7 @@ export function indexingButtonVisible(feature: boolean, show: boolean, config: C
 
 export function formatIndexingLabel(status: IndexingStatus): string {
   if (status.state === "In Progress") {
-    if (status.totalFiles <= 0) return "IDX In Progress"
+    if ((status.totalFiles as number) <= 0) return "IDX In Progress"
     return `IDX ${status.percent}% ${status.processedFiles}/${status.totalFiles}`
   }
 

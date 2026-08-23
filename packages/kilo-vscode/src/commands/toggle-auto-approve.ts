@@ -92,7 +92,7 @@ export function registerToggleAutoApprove(
     const client = tryGetClient(connectionService)
     if (!client) return false
     const dir =
-      directory ?? connectionService.getPermissionDirectory(event.properties.id) ?? resolve(event.properties.sessionID)
+      directory ?? connectionService.getPermissionDirectory(event.properties.id as string) ?? resolve(event.properties.sessionID as string | undefined)
     return client.permission
       .reply({ requestID: event.properties.id, directory: dir, reply: "once" }, { throwOnError: true })
       .then(

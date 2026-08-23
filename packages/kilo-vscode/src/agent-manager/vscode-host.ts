@@ -206,7 +206,7 @@ export class VscodeHost implements Host {
   private async listProjectSessions(dir: string): Promise<Session[]> {
     try {
       const client = await this.connectionService.getClientAsync(dir)
-      const res = await client.session.list({ directory: dir, roots: true }, { throwOnError: true })
+      const res = await client.session.list({ directory: dir, roots: "true" }, { throwOnError: true })
       return res.data
     } catch (err) {
       console.warn(`[Kilo New] Agent Manager: failed to list project sessions for ${dir}:`, err)

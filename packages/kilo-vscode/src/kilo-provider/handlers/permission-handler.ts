@@ -29,9 +29,9 @@ export function recoveryDirs(workspace: string, dirs: ReadonlyMap<string, string
 
 export function recoverablePermissions(perms: RecoverablePermission[], tracked: Set<string>, seen: Set<string>) {
   return perms.filter((perm) => {
-    if (seen.has(perm.id)) return false
-    seen.add(perm.id)
-    return tracked.has(perm.sessionID)
+    if (seen.has(perm.id as string)) return false
+    seen.add(perm.id as string)
+    return tracked.has(perm.sessionID as string)
   })
 }
 
@@ -141,13 +141,13 @@ export async function fetchAndSendPendingPermissions(ctx: PermissionContext): Pr
       valid.add(dir)
       if (!data) continue
       for (const perm of recoverablePermissions(data, ctx.trackedSessionIds, seen)) {
-        ctx.recordPermissionDirectory(perm.id, dir)
+        ctx.recordPermissionDirectory(perm.id as string, dir)
         ctx.postMessage({
           type: "permissionRequest",
           permission: {
-            id: perm.id,
-            sessionID: perm.sessionID,
-            toolName: perm.permission,
+            id: perm.id as string,
+            sessionID: perm.sessionID as string,
+            toolName: perm.permission as string,
             patterns: perm.patterns,
             always: perm.always,
             args: perm.metadata,

@@ -311,7 +311,7 @@ export class AgentManagerProvider implements Disposable {
       const ctx = this.contexts.byLiveSession(id)
       if (!ctx) return
       ctx.removeLiveSession(id)
-      this.postToWebview({ type: "agentManager.projectSessions", projectId: ctx.id, sessions: [...ctx.sessions()] })
+      this.postToWebview({ type: "agentManager.projectSessions", projectId: ctx.id, sessions: [...ctx.sessions()] as unknown as Array<{ id: string; parentID?: string | null; title?: string; createdAt: string; updatedAt: string; worktreeId: string | null }> })
       return
     }
     const info = ev.properties?.info
@@ -323,14 +323,14 @@ export class AgentManagerProvider implements Disposable {
     const ctx = this.contexts.byDirectory(dir)
     if (!ctx || ctx.lifecycle !== "ready") return
     const state = ctx.peekState()
-    const managed = state?.getSession(info.id)
+    const managed = state?.getSession(info.id as string)
     const worktreeId =
       managed?.worktreeId ?? state?.getWorktrees().find((wt) => wt.path && samePath(wt.path, dir))?.id ?? null
     ctx.upsertSession({ ...sessionToWebview(info), worktreeId })
     // The next regular push re-lists from the backend to reconcile the
     // optimistic entry (position, subtrees, deletions elsewhere).
     ctx.invalidateSessions()
-    this.postToWebview({ type: "agentManager.projectSessions", projectId: ctx.id, sessions: [...ctx.sessions()] })
+    this.postToWebview({ type: "agentManager.projectSessions", projectId: ctx.id, sessions: [...ctx.sessions()] as unknown as Array<{ id: string; parentID?: string | null; title?: string; createdAt: string; updatedAt: string; worktreeId: string | null }> })
   }
 
   private onSessionStatus(event: unknown): void {
@@ -1003,9 +1003,11 @@ export class AgentManagerProvider implements Disposable {
           client.session.create(
             {
               directory: worktreePath,
-              platform: PLATFORM,
-              metadata,
-              ...(source?.sandboxInheritanceToken ? { sandboxInheritanceToken: source.sandboxInheritanceToken } : {}),
+              body: {
+                platform: PLATFORM,
+                metadata,
+                ...(source?.sandboxInheritanceToken ? { sandboxInheritanceToken: source.sandboxInheritanceToken } : {}),
+              },
             },
             { throwOnError: true },
           ),
@@ -1182,7 +1184,7 @@ export class AgentManagerProvider implements Disposable {
         notifyForked: (s, from, wt) =>
           this.postToWebview({
             type: "agentManager.sessionForked",
-            sessionId: s.id,
+            sessionId: s.id as string,
             forkedFromId: from,
             worktreeId: wt,
           }),
@@ -1320,12 +1322,12 @@ export class AgentManagerProvider implements Disposable {
     const worktree = state.findWorktreeByPath(directory)
     if (!worktree) return
 
-    state.addSession(session.id, worktree.id)
-    this.registerWorktreeSession(session.id, directory)
+    state.addSession(session.id as string, worktree.id)
+    this.registerWorktreeSession(session.id as string, directory)
     this.pushState()
     this.postToWebview({
       type: "agentManager.sessionAdded",
-      sessionId: session.id,
+      sessionId: session.id as string,
       worktreeId: worktree.id,
     })
     this.log(`Adopted follow-up session ${session.id} into worktree ${worktree.id}`)

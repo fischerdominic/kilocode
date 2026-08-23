@@ -33,8 +33,8 @@ export async function handleFileSearch(input: Input): Promise<void> {
 
   const query = input.message.query
   void Promise.allSettled([
-    client.find.files({ query, directory: dir, type: "file", limit: 50 }, { throwOnError: true }),
-    client.find.files({ query, directory: dir, type: "directory", limit: 50 }, { throwOnError: true }),
+    client.find.files({ query, directory: dir, type: "file", limit: 50 as unknown as string }, { throwOnError: true }),
+    client.find.files({ query, directory: dir, type: "directory", limit: 50 as unknown as string }, { throwOnError: true }),
   ]).then(([fileRes, folderRes]) => {
     const files = settled(fileRes, "file")
     const folders = settled(folderRes, "folder")

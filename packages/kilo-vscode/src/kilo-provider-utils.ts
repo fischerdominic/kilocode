@@ -196,11 +196,11 @@ export async function runWithMessageConfirmation<T>(
 
 export function sessionToWebview(session: Pick<Session, "id" | "parentID" | "title" | "time" | "summary" | "revert">) {
   return {
-    id: session.id,
-    parentID: session.parentID ?? null,
+    id: session.id as string,
+    parentID: (session.parentID as string | null | undefined) ?? null,
     title: session.title,
-    createdAt: new Date(session.time.created).toISOString(),
-    updatedAt: new Date(session.time.updated).toISOString(),
+    createdAt: new Date(session.time.created as number).toISOString(),
+    updatedAt: new Date(session.time.updated as number).toISOString(),
     // Use null (not undefined) so the value survives postMessage JSON serialization.
     // Without this, unrevert responses lose the revert key entirely and the
     // SolidJS store merge never clears the existing revert state.
@@ -473,80 +473,83 @@ function mapPartEvent(event: PartEvent, sessionID: string | undefined): WebviewM
       const part = event.data.part
       return {
         type: "partUpdated",
-        sessionID: event.data.sessionID,
-        messageID: part.messageID,
+        sessionID: event.data.sessionID as string,
+        messageID: part.messageID as string,
         part,
       }
     }
     return {
       type: "partRemoved",
-      sessionID: event.data.sessionID,
-      messageID: event.data.messageID,
-      partID: event.data.partID,
+      sessionID: event.data.sessionID as string,
+      messageID: event.data.messageID as string,
+      partID: event.data.partID as string,
     }
   }
   if (!sessionID) return null
   const props = event.properties
   return {
     type: "partUpdated",
-    sessionID: props.sessionID,
-    messageID: props.messageID,
-    part: { id: props.partID, type: "text", messageID: props.messageID, text: props.delta },
-    delta: { type: "text-delta", textDelta: props.delta },
+    sessionID: props.sessionID as string,
+    messageID: props.messageID as string,
+    part: { id: props.partID as string, type: "text", messageID: props.messageID as string, text: props.delta as string },
+    delta: { type: "text-delta", textDelta: props.delta as string },
   }
 }
 
 function statusExtra(info: Extract<Event, { type: "session.status" }>["properties"]["status"]) {
-  if (info.type === "retry") return { attempt: info.attempt, message: info.message, next: info.next }
+  if (info.type === "retry") return { attempt: info.attempt, message: info.message, next: info.next as number }
   if (info.type === "offline") return { message: info.message }
   return {}
 }
 
-export function mapSSEEventToWebviewMessage(event: StreamEvent, sessionID: string | undefined): WebviewMessage {
-  if (event.type === "sync") {
-    switch (event.name) {
-      case "message.updated.1": {
-        const info = event.data.info
-        return {
-          type: "messageCreated",
-          message: {
-            ...info,
-            createdAt: new Date(info.time.created).toISOString(),
-          },
-        }
+function mapSyncEvent(event: Extract<StreamEvent, { type: "sync" }>): WebviewMessage {
+  switch (event.name) {
+    case "message.updated.1": {
+      const info = event.data.info
+      return {
+        type: "messageCreated",
+        message: {
+          ...info,
+          createdAt: new Date(info.time.created as number).toISOString(),
+        },
       }
-      case "message.removed.1":
-        return {
-          type: "messageRemoved",
-          sessionID: event.data.sessionID,
-          messageID: event.data.messageID,
-        }
-      case "message.part.updated.1":
-      case "message.part.removed.1":
-        return mapPartEvent(event, sessionID)
-      case "session.created.1":
-        return {
-          type: "sessionCreated",
-          session: sessionToWebview(event.data.info),
-        }
-      case "session.updated.1":
-        return null
-      case "session.deleted.1":
-        return {
-          type: "sessionDeleted",
-          sessionID: event.data.sessionID,
-        }
     }
+    case "message.removed.1":
+      return {
+        type: "messageRemoved",
+        sessionID: event.data.sessionID as string,
+        messageID: event.data.messageID as string,
+      }
+    case "message.part.updated.1":
+    case "message.part.removed.1":
+      return mapPartEvent(event, undefined)
+    case "session.created.1":
+      return {
+        type: "sessionCreated",
+        session: sessionToWebview(event.data.info),
+      }
+    case "session.updated.1":
+      return null
+    case "session.deleted.1":
+      return {
+        type: "sessionDeleted",
+        sessionID: event.data.sessionID as string,
+      }
+    default:
+      return null
   }
+}
+
+function mapTransientEvent(event: Extract<StreamEvent, { type: "message.part.delta" } | Exclude<StreamEvent, { type: "sync" | "message.part.delta" }>>, sessionID: string | undefined): WebviewMessage {
   if (event.type === "message.part.delta") return mapPartEvent(event, sessionID)
   switch (event.type) {
     case "session.status": {
       const info = event.properties.status
       const status = info.type
-      const extra = statusExtra(info)
+      const extra = statusExtra(info) as { attempt?: number; message?: string; next?: number }
       return {
         type: "sessionStatus" as const,
-        sessionID: event.properties.sessionID,
+        sessionID: event.properties.sessionID as string,
         status,
         ...extra,
       }
@@ -554,42 +557,42 @@ export function mapSSEEventToWebviewMessage(event: StreamEvent, sessionID: strin
     case "session.turn.close":
       return {
         type: "sessionTurnClosed",
-        sessionID: event.properties.sessionID,
-        reason: event.properties.reason,
+        sessionID: event.properties.sessionID as string,
+        reason: event.properties.reason as "completed" | "error" | "interrupted" | "superseded",
       }
     case "permission.asked":
       return {
         type: "permissionRequest",
         permission: {
-          id: event.properties.id,
-          sessionID: event.properties.sessionID,
-          toolName: event.properties.permission,
+          id: event.properties.id as string,
+          sessionID: event.properties.sessionID as string,
+          toolName: event.properties.permission as string,
           patterns: event.properties.patterns ?? [],
           always: event.properties.always ?? [],
           args: event.properties.metadata,
           message: `Permission required: ${event.properties.permission}`,
-          tool: event.properties.tool,
+          tool: event.properties.tool ?? undefined,
         },
       }
     case "permission.replied":
       return {
         type: "permissionResolved",
-        permissionID: event.properties.requestID,
+        permissionID: event.properties.requestID as string,
       }
     case "todo.updated":
       return {
         type: "todoUpdated",
-        sessionID: event.properties.sessionID,
+        sessionID: event.properties.sessionID as string,
         items: event.properties.todos,
       }
     case "question.asked":
       return {
         type: "questionRequest",
         question: {
-          id: event.properties.id,
-          sessionID: event.properties.sessionID,
+          id: event.properties.id as string,
+          sessionID: event.properties.sessionID as string,
           questions: event.properties.questions,
-          blocking: event.properties.blocking,
+          blocking: event.properties.blocking ?? undefined,
           tool: event.properties.tool,
         },
       }
@@ -597,17 +600,17 @@ export function mapSSEEventToWebviewMessage(event: StreamEvent, sessionID: strin
     case "question.rejected":
       return {
         type: "questionResolved",
-        requestID: event.properties.requestID,
+        requestID: event.properties.requestID as string,
       }
     case "suggestion.shown":
       return {
         type: "suggestionRequest",
         suggestion: {
-          id: event.properties.id,
-          sessionID: event.properties.sessionID,
+          id: event.properties.id as string,
+          sessionID: event.properties.sessionID as string,
           text: event.properties.text,
-          actions: event.properties.actions,
-          blocking: event.properties.blocking,
+          actions: event.properties.actions as unknown[],
+          blocking: event.properties.blocking ?? undefined,
           tool: event.properties.tool,
         },
       }
@@ -615,25 +618,25 @@ export function mapSSEEventToWebviewMessage(event: StreamEvent, sessionID: strin
     case "suggestion.dismissed":
       return {
         type: "suggestionResolved",
-        requestID: event.properties.requestID,
+        requestID: event.properties.requestID as string,
       }
     case "session.error": {
       return {
         type: "sessionError",
-        eventID: event.id,
-        sessionID: event.properties.sessionID,
-        error: event.properties.error,
+        eventID: event.id as string,
+        sessionID: event.properties.sessionID as string | undefined,
+        error: event.properties.error ?? undefined,
       }
     }
     case "sandbox.status.changed":
       return {
         type: "sandboxStatus",
-        sessionID: event.properties.sessionID,
-        directory: event.properties.directory,
-        enabled: event.properties.enabled,
-        available: event.properties.available,
-        reason: event.properties.reason,
-        version: event.properties.version,
+        sessionID: event.properties.sessionID as string,
+        directory: event.properties.directory as string,
+        enabled: event.properties.enabled as boolean,
+        available: event.properties.available as boolean,
+        reason: event.properties.reason ?? undefined,
+        version: event.properties.version as unknown as number,
       }
     case "indexing.status":
       return {
@@ -643,6 +646,11 @@ export function mapSSEEventToWebviewMessage(event: StreamEvent, sessionID: strin
     default:
       return null
   }
+}
+
+export function mapSSEEventToWebviewMessage(event: StreamEvent, sessionID: string | undefined): WebviewMessage {
+  if (event.type === "sync") return mapSyncEvent(event)
+  return mapTransientEvent(event, sessionID)
 }
 
 export function mapCloudSessionMessageToWebviewMessage(message: CloudSessionMessage) {

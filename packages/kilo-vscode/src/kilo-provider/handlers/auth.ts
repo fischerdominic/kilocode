@@ -34,10 +34,12 @@ export async function handleLogin(ctx: AuthContext, attempt: number, getAttempt:
     const dir = ctx.getWorkspaceDirectory()
 
     // Step 1: Initiate OAuth authorization
-    const { data: auth } = await ctx.client.provider.oauth.authorize(
+    const providerWithOAuth = ctx.client.provider as unknown as { oauth: { authorize: (params: { providerID: string; method: number; directory?: string | null }, opts?: unknown) => Promise<{ data: unknown }>; callback: (params: { providerID: string; method: number; directory?: string | null }, opts?: unknown) => Promise<unknown> } }
+    const { data: authRaw } = await providerWithOAuth.oauth.authorize(
       { providerID: "kilo", method: 0, directory: dir },
       { throwOnError: true },
     )
+    const auth = authRaw as { url?: string; instructions?: string }
     console.log("[Kilo New] KiloProvider: 🔐 Got auth URL:", auth.url)
 
     // Parse code from instructions (format: "Open URL and enter code: ABCD-1234")
@@ -53,7 +55,7 @@ export async function handleLogin(ctx: AuthContext, attempt: number, getAttempt:
     })
 
     // Step 2: Wait for callback (blocks until polling completes)
-    await ctx.client.provider.oauth.callback({ providerID: "kilo", method: 0, directory: dir }, { throwOnError: true })
+    await providerWithOAuth.oauth.callback({ providerID: "kilo", method: 0, directory: dir }, { throwOnError: true })
 
     // Check if this attempt was cancelled
     if (attempt !== getAttempt()) return

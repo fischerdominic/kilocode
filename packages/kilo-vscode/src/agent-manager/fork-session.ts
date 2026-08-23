@@ -54,11 +54,11 @@ export async function forkSession(
   }
 
   if (worktreeId && ctx.state) {
-    ctx.state.addSession(forked.id, worktreeId)
-    if (directory) ctx.registerWorktreeSession(forked.id, directory)
+    ctx.state.addSession(forked.id as string, worktreeId)
+    if (directory) ctx.registerWorktreeSession(forked.id as string, directory)
   }
 
-  await recordForkHandoff({ client, sessionId: forked.id, directory }).catch((err) => {
+  await recordForkHandoff({ client, sessionId: forked.id as string, directory }).catch((err) => {
     ctx.log("forkSession: failed to record fork handoff:", getErrorMessage(err))
   })
 

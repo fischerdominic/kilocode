@@ -152,7 +152,7 @@ export class KiloProviderMemory {
 
   private async load(sessionID?: string): Promise<void> {
     try {
-      const directory = this.input.dir(sessionID ?? this.input.session()?.id)
+      const directory = this.input.dir(sessionID ?? (this.input.session()?.id as string | undefined))
       const client = this.input.client()
       if (!client) {
         const cached = directory ? this.cached.get(directory) : undefined
@@ -217,7 +217,7 @@ export class KiloProviderMemory {
     }
 
     try {
-      const directory = this.input.dir(sessionID ?? this.input.session()?.id)
+      const directory = this.input.dir(sessionID ?? (this.input.session()?.id as string | undefined))
       if (!directory) {
         this.input.post({ type: "memoryLoaded", sessionID, error: NO_PROJECT })
         return
@@ -298,7 +298,7 @@ export class KiloProviderMemory {
       if (!client) throw new Error("Not connected to CLI backend")
       const api = memory(client)
       if (!api) throw new Error("Memory unavailable in CLI backend")
-      const directory = this.input.dir(sessionID ?? this.input.session()?.id)
+      const directory = this.input.dir(sessionID ?? (this.input.session()?.id as string | undefined))
       if (!directory) throw new Error(NO_PROJECT)
       const { data: status } = await retry(() => api.status({ directory }, { throwOnError: true }))
       const operation = status.state.enabled ? "disable" : "enable"
@@ -332,7 +332,7 @@ export class KiloProviderMemory {
     }
 
     try {
-      const directory = this.input.dir(message.sessionID ?? this.input.session()?.id)
+      const directory = this.input.dir((message.sessionID as string | undefined) ?? (this.input.session()?.id as string | undefined))
       if (!directory) {
         this.input.post({
           type: "memoryOperationResult",

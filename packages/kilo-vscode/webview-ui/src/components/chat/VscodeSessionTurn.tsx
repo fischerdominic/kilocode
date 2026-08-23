@@ -25,10 +25,10 @@ import type {
 import { ErrorDisplay } from "./ErrorDisplay"
 import { useServer } from "../../context/server"
 import { useSession } from "../../context/session"
+import { visibleError } from "../../context/session-errors"
 import { useLanguage } from "../../context/language"
 import { useVSCode } from "../../context/vscode"
 import { useFeedback } from "../../context/feedback"
-import { visibleError } from "../../context/session-errors"
 import type { ErrorDisplayProps } from "./ErrorDisplay"
 import type { Message as WebMessage } from "../../types/messages"
 
@@ -67,14 +67,14 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
 
   const parts = createMemo(() => {
     const msg = message()
-    return (data.store.part?.[msg.id] ?? emptyParts) as SDKPart[]
+    return (data.store.part?.[msg.id as string] ?? emptyParts) as SDKPart[]
   })
 
   const assistantMessages = createMemo(() => props.turn.assistant as SDKAssistantMessage[])
 
   const interrupted = createMemo(() => assistantMessages().some((m) => m.error?.name === "MessageAbortedError"))
 
-  const error = createMemo(() => visibleError(assistantMessages(), session.isErrorHidden))
+  const error = createMemo(() => visibleError(assistantMessages() as any, session.isErrorHidden))
 
   // Diffs from message summary
   const diffs = createMemo(() => {
@@ -92,7 +92,7 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
       .reverse()
   })
 
-  const openChanges = () => vscode.postMessage({ type: "openChanges", turnId: message().id })
+  const openChanges = () => vscode.postMessage({ type: "openChanges", turnId: message().id as string })
 
   // Copy part ID — the last text part from the last assistant message.
   // Synthetic parts (e.g. "Initializing snapshot…" from the slow-repo guard)
@@ -104,12 +104,12 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
     for (let i = msgs.length - 1; i >= 0; i--) {
       const msg = msgs[i]
       if (!msg) continue
-      const msgParts = (data.store.part?.[msg.id] ?? emptyParts) as SDKPart[]
+      const msgParts = (data.store.part?.[msg.id as string] ?? emptyParts) as SDKPart[]
       for (let j = msgParts.length - 1; j >= 0; j--) {
         const part = msgParts[j]
         if (!part || part.type !== "text") continue
         if ((part as SDKPart & { synthetic?: boolean }).synthetic) continue
-        if ((part as SDKPart & { text: string }).text?.trim()) return part.id
+        if ((part as SDKPart & { text: string }).text?.trim()) return part.id as string
       }
     }
     return undefined
@@ -135,12 +135,12 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
                 parts={parts() as unknown as Parameters<typeof UserMessageDisplay>[0]["parts"]}
                 interrupted={interrupted()}
                 queued={props.queued}
-                onFork={props.onForkMessage ? () => props.onForkMessage?.(msg().sessionID, msg().id) : undefined}
+                onFork={props.onForkMessage ? () => props.onForkMessage?.(msg().sessionID as string, msg().id as string) : undefined}
                 onRevert={
                   assistantMessages().length > 0
                     ? () => {
                         if (session.status() !== "idle") return
-                        session.revertSession(msg().id)
+                        session.revertSession(msg().id as string)
                       }
                     : undefined
                 }
@@ -158,12 +158,12 @@ export const VscodeSessionTurn: Component<VscodeSessionTurnProps> = (props) => {
                     showAssistantCopyPartID={showAssistantCopyPartID()}
                     feedback={{
                       enabled: true,
-                      rating: feedback.getRating(amsg.id),
+                      rating: feedback.getRating(amsg.id as string),
                       onRate: (next) =>
                         feedback.rate({
-                          messageID: amsg.id,
-                          sessionID: amsg.sessionID,
-                          parentMessageID: amsg.parentID,
+                          messageID: amsg.id as string,
+                          sessionID: amsg.sessionID as string,
+                          parentMessageID: amsg.parentID as string,
                           providerID: amsg.providerID,
                           modelID: amsg.modelID,
                           variant: (amsg as SDKAssistantMessage & { variant?: string }).variant,

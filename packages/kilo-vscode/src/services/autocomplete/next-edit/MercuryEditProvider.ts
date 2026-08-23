@@ -6,7 +6,7 @@ const MERCURY_MAX_TOKENS = 512
 const DEFAULT_PROVIDER_ID = "inception"
 const DEFAULT_MODEL_ID = "mercury-next-edit"
 
-type EditResponseData = { content?: string; usage?: { prompt_tokens?: number; completion_tokens?: number } }
+type EditResponseData = { content?: string; usage?: { prompt_tokens?: number | null; completion_tokens?: number | null } | null }
 
 export interface MercuryEditProviderOptions {
   connectionService: KiloConnectionService
@@ -85,8 +85,8 @@ export class MercuryEditProvider {
       editableRegionStartLine: ctx.editableRegionStartLine,
       editableRegionEndLine: ctx.editableRegionEndLine,
       latencyMs,
-      inputTokens: usage?.prompt_tokens,
-      outputTokens: usage?.completion_tokens,
+      inputTokens: usage?.prompt_tokens ?? undefined,
+      outputTokens: usage?.completion_tokens ?? undefined,
     }
   }
 }

@@ -50,14 +50,15 @@ export async function generateFim(
   )
 
   for await (const chunk of stream) {
-    const choice = chunk.choices?.[0]
+    const parsed = typeof chunk === "string" ? JSON.parse(chunk) : chunk
+    const choice = parsed.choices?.[0]
     const content = choice?.delta?.content ?? choice?.text
     if (content) onChunk(content)
-    if (chunk.usage) {
-      inputTokens = chunk.usage.prompt_tokens ?? 0
-      outputTokens = chunk.usage.completion_tokens ?? 0
+    if (parsed.usage) {
+      inputTokens = parsed.usage.prompt_tokens ?? 0
+      outputTokens = parsed.usage.completion_tokens ?? 0
     }
-    if (chunk.cost !== undefined) cost = chunk.cost
+    if (parsed.cost !== undefined) cost = parsed.cost
   }
 
   if (sseError) throw sseError

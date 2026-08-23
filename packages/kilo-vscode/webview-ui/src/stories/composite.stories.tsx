@@ -705,7 +705,7 @@ export const TimelineHighlightedTool: Story = {
           <div class="vscode-session-turn-assistant">
             <AssistantMessage
               message={baseAssistantMessage}
-              highlight={() => ({ msgId: ASST_MSG_ID, partId: readCompleted.id })}
+              highlight={() => ({ msgId: ASST_MSG_ID, partId: readCompleted.id as string })}
             />
           </div>
         </div>

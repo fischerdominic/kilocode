@@ -125,7 +125,7 @@ async function invalidate(
   if (!client) return
 
   if (scope === "global") {
-    await client.global.config.update({ config: {} }).catch((err: unknown) => {
+    await client.global.config.update({ config1: {} }).catch((err: unknown) => {
       console.warn("[Kilo New] global.config.update after marketplace change failed:", err)
     })
   }

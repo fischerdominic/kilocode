@@ -290,7 +290,7 @@ export class MarketplacePanelProvider implements vscode.Disposable {
   }
 
   private handleStatus(event: Extract<GlobalEvent["payload"], { type: "session.status" }>): void {
-    const sid = event.properties.sessionID
+    const sid = event.properties.sessionID as string
     this.statuses.set(sid, event.properties.status.type)
     const msg = mapSSEEventToWebviewMessage(event, sid)
     if (msg) this.post(msg)

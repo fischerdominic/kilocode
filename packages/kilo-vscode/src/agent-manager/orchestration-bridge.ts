@@ -153,11 +153,11 @@ export class AgentManagerOrchestrationBridge {
 
   private event(event: SSEPayload, directory?: string): void {
     if (event.type === "session.updated" || event.type === "session.created") {
-      this.titles.set(event.properties.sessionID, event.properties.info.title.trim() || event.properties.sessionID)
+      this.titles.set(event.properties.sessionID as string, event.properties.info.title.trim() || event.properties.sessionID as string)
       return
     }
     if (event.type === "session.deleted") {
-      this.titles.delete(event.properties.sessionID)
+      this.titles.delete(event.properties.sessionID as string)
       return
     }
     if (event.type === "kilocode.agent_manager.requested") {

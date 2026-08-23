@@ -199,7 +199,7 @@ export async function migrate(
       }
     }
     if (Object.keys(mcpConfig).length > 0) {
-      await client.global.config.update({ config: { mcp: mcpConfig } })
+      await client.global.config.update({ config1: { mcp: mcpConfig } })
     }
   }
 
@@ -226,7 +226,7 @@ export async function migrate(
           onProgress(info.name, "migrating")
           const agent = convertCustomMode(merged)
           // Set explicit name so the UI shows "(Custom)" instead of title-casing the slug
-          agent.name = info.name
+          agent.displayName = info.name
           agentConfig[slug] = agent
           results.push({ item: info.name, category: "customMode", status: "success" })
           onProgress(info.name, "success")
@@ -252,7 +252,7 @@ export async function migrate(
       }
     }
     if (Object.keys(agentConfig).length > 0) {
-      await client.global.config.update({ config: { agent: agentConfig } })
+      await client.global.config.update({ config1: { agent: agentConfig } })
     }
   }
 
@@ -460,7 +460,7 @@ async function migrateAutoApproval(
       // Global allow with no specific command rules — apply immediately using the scalar form.
       // PermissionConfig is "allow" | "ask" | "deny" | { read?: ..., ... }, so a global allow
       // must be the scalar string, not an object with a "*" key.
-      await client.global.config.update({ config: { permission: "allow" } })
+      await client.global.config.update({ config1: { permission: "allow" } })
       globalAllowApplied = true
     } else if (hasCommandLists) {
       const bashRules: PermissionObjectConfig = {}
@@ -562,7 +562,7 @@ async function migrateAutoApproval(
   // Only write the per-tool object form if global allow wasn't already applied —
   // writing an object after "allow" would narrow permissions to only the listed tools.
   if (!globalAllowApplied && Object.keys(permission).length > 0) {
-    await client.global.config.update({ config: { permission } })
+    await client.global.config.update({ config1: { permission } })
   }
 
   return results

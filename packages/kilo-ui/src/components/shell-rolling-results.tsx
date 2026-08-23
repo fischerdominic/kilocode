@@ -196,7 +196,7 @@ export function ShellRollingResults(props: { part: ToolPart; animate?: boolean; 
   const reduce = useReducedMotion()
   const wiped = new Set<string>()
   const [mounted, setMounted] = createSignal(false)
-  const key = () => toolOpenKey({ tool: props.part.tool, callID: props.part.callID, partID: props.part.id })
+  const key = () => toolOpenKey({ tool: props.part.tool, callID: props.part.callID, partID: props.part.id as string })
   const [open, setOpen] = createSignal(readToolOpen(key(), props.defaultOpen ?? true) ?? true)
   onMount(() => setMounted(true))
   const state = createMemo(() => props.part.state as Record<string, any>)

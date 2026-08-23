@@ -21,7 +21,7 @@ export async function exportTranscript(
   ])
   const text = formatTranscript(session, page.items)
   const uri = await vscode.window.showSaveDialog({
-    defaultUri: vscode.Uri.file(path.join(input.dir, `session-${session.id.slice(0, 8)}.md`)),
+    defaultUri: vscode.Uri.file(path.join(input.dir, `session-${(session.id as string).slice(0, 8)}.md`)),
     filters: { Markdown: ["md", "markdown"] },
     saveLabel: "Export",
   })
@@ -34,9 +34,9 @@ export function formatTranscript(session: Session, items: Item[]): string {
   const head = [
     `# ${session.title}`,
     "",
-    `**Session ID:** ${session.id}`,
-    `**Created:** ${new Date(session.time.created).toLocaleString()}`,
-    `**Updated:** ${new Date(session.time.updated).toLocaleString()}`,
+    `**Session ID:** ${session.id as string}`,
+    `**Created:** ${new Date(session.time.created as number).toLocaleString()}`,
+    `**Updated:** ${new Date(session.time.updated as number).toLocaleString()}`,
     "",
     "---",
     "",

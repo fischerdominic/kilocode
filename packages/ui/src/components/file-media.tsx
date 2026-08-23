@@ -93,7 +93,7 @@ export function FileMedia(props: { media?: FileMediaOptions; fallback: () => JSX
         return {
           key: input.key,
           src,
-          mime: input.kind === "audio" ? normalizeMimeType(result?.mimeType) : undefined,
+          mime: input.kind === "audio" ? normalizeMimeType(result?.mimeType ?? undefined) : undefined,
         }
       },
       () => {

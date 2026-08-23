@@ -167,8 +167,8 @@ async function live(input: OverviewInput, sessions: ManagedSession[]) {
       for (const [id, value] of Object.entries(status.data ?? {}) as Array<[string, SessionStatus]>) {
         statuses.set(id, value.type)
       }
-      for (const value of perms.data ?? []) permissions.add(value.sessionID)
-      for (const value of qs.data ?? []) questions.add(value.sessionID)
+      for (const value of perms.data ?? []) permissions.add(value.sessionID as string)
+      for (const value of qs.data ?? []) questions.add(value.sessionID as string)
     }),
   )
   return { permissions, questions, statuses, unavailable }

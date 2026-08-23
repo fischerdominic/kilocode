@@ -103,9 +103,9 @@ export class WorktreeImporter {
         await this.host.setup(result.path, result.branch, worktree.id)
         const session = await this.host.session(result.path, result.branch, worktree.id)
         if (!session) throw new Error("Failed to create session")
-        state.addSession(session.id, worktree.id)
-        this.host.register(session.id, result.path)
-        this.host.ready(session.id, result, worktree.id)
+        state.addSession(session.id as string, worktree.id)
+        this.host.register(session.id as string, result.path)
+        this.host.ready(session.id as string, result, worktree.id)
         this.host.post({ type: "agentManager.importResult", projectId, success: true, message: success })
         this.host.log(`${log} as worktree ${worktree.id}`)
       } catch (error) {

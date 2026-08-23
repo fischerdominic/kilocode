@@ -161,7 +161,7 @@ export function ContextToolRollingResults(props: { parts: ToolPart[]; pending: b
         rowGap={0}
         open={props.pending}
         animate
-        getKey={(part) => part.callID || part.id}
+        getKey={(part) => part.callID || (part.id as string)}
         render={(part) => {
           const label = createMemo(() => contextToolLabel(part))
           const k = part.callID || part.id
@@ -171,7 +171,7 @@ export function ContextToolRollingResults(props: { parts: ToolPart[]; pending: b
               {(() => {
                 const [detailRef, setDetailRef] = createSignal<HTMLSpanElement>()
                 useRowWipe({
-                  id: () => k,
+                  id: () => k as string,
                   text: () => label().detail,
                   ref: detailRef,
                   seen: wiped,

@@ -141,12 +141,12 @@ export class ScriptTerminalManager {
       throw new Error(`Failed to create ${TITLE[kind]} terminal: ${detail}`)
     }
 
-    const wsUrl = await this.url(client, kind, pty.id, config.cwd)
+    const wsUrl = await this.url(client, kind, pty.id as string, config.cwd)
     const entry: Entry = {
       key: id,
       kind,
       terminalId: terminalId(),
-      ptyID: pty.id,
+      ptyID: pty.id as string,
       projectId: config.projectId,
       worktreeId: config.worktreeId,
       cwd: config.cwd,
@@ -306,7 +306,7 @@ export class ScriptTerminalManager {
         )
         return
       }
-      if (pty.status === "exited") this.finishExited(entry, pty.exitCode ?? 0)
+      if (pty.status === "exited") this.finishExited(entry, pty.exitCode as unknown as number)
     } catch (error) {
       this.deps.log(`Failed to read ${TITLE[entry.kind]} terminal: ${message(error)}`)
     }

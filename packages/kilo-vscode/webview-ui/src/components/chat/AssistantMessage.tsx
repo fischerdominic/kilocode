@@ -135,7 +135,7 @@ function TodoToolCard(props: { part: ToolPart; forceOpen?: boolean }) {
             input={state()?.input ?? {}}
             metadata={state()?.metadata ?? {}}
             tool={props.part.tool}
-            partID={props.part.id}
+            partID={props.part.id as string}
             callID={props.part.callID}
             output={state()?.output}
             status={state()?.status}
@@ -223,7 +223,7 @@ export const AssistantMessage: Component<AssistantMessageProps> = (props) => {
   const throughputVisible = createMemo(() => display.throughputVisible())
 
   const parts = createMemo(() => {
-    const stored = props.parts ?? data.store.part?.[props.message.id]
+    const stored = props.parts ?? data.store.part?.[props.message.id as string]
     if (!stored) return []
     return (stored as SDKPart[]).filter((part) => {
       if (!isRenderable(part, props.message)) return false
@@ -241,7 +241,7 @@ export const AssistantMessage: Component<AssistantMessageProps> = (props) => {
   // different from the one currently rendered.
   const throughput = createMemo(() =>
     messageThroughput(
-      (data.store.part?.[props.message.id] as TimelinePart[] | undefined) ??
+      (data.store.part?.[props.message.id as string] as TimelinePart[] | undefined) ??
         (props.parts as TimelinePart[] | undefined) ??
         ([] as TimelinePart[]),
     ),

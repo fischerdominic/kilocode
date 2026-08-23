@@ -190,17 +190,17 @@ async function provisionVersion(
   }
 
   const state = ctx.stateManager()
-  state.addSession(session.id, wt.worktree.id)
+  state.addSession(session.id as string, wt.worktree.id)
   if (!spec.branchName && !spec.worktreeName && host.autoName().enabled) {
-    state.armAutoName(wt.worktree.id, session.id)
+    state.armAutoName(wt.worktree.id, session.id as string)
   }
 
   // Sandbox must match the user's choice before this session is exposed or
   // receives its initial prompt. A failed reconciliation aborts this version.
-  if (spec.sandbox !== undefined && !(await reconcileSandbox(host, spec, wt, session.id))) return null
+  if (spec.sandbox !== undefined && !(await reconcileSandbox(host, spec, wt, session.id as string))) return null
 
-  host.register(session.id, wt.result.path)
-  host.notifyReady(session.id, wt.result, wt.worktree.id)
+  host.register(session.id as string, wt.result.path)
+  host.notifyReady(session.id as string, wt.result, wt.worktree.id)
   host.sessions.register(session)
 
   // Set the per-version model immediately so the UI selector reflects
@@ -213,7 +213,7 @@ async function provisionVersion(
     host.post({
       type: "agentManager.setSessionModel",
       projectId: ctx.id,
-      sessionId: session.id,
+      sessionId: session.id as string,
       providerID: earlyProviderID,
       modelID: earlyModelID,
     })
@@ -233,7 +233,7 @@ async function provisionVersion(
 
   return {
     worktreeId: wt.worktree.id,
-    sessionId: session.id,
+    sessionId: session.id as string,
     path: wt.result.path,
     branch: wt.result.branch,
     parentBranch: wt.result.parentBranch,

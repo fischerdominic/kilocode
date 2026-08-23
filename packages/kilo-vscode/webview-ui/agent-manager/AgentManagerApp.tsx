@@ -2027,6 +2027,7 @@ const AgentManagerContent: Component = () => {
     },
     refocus: requestChatFocus,
     postMessage: (msg) => vscode.postMessage(msg as never),
+    track: (..._args) => {},
     // Panel-local pick, immune to cross-window setting echoes (see side.ts).
     saved: readSavedDestination(vscode.getState<Record<string, unknown>>()),
     save: (d) => vscode.setState({ ...vscode.getState<Record<string, unknown>>(), terminalDestination: d }),

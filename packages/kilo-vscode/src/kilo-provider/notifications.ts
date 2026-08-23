@@ -49,7 +49,16 @@ export async function fetchAndSendNotifications(ctx: NotificationsContext): Prom
 
   try {
     const { data: all } = await retry(() => ctx.client!.kilo.notifications(undefined, { throwOnError: true }))
-    const notifications = all.filter((n) => !n.showIn || n.showIn.includes("extension"))
+    const notifications = all
+      .filter((n) => !n.showIn || n.showIn.includes("extension"))
+      .map((n): NotificationItem => ({
+        id: n.id,
+        title: n.title,
+        message: n.message,
+        action: n.action ?? undefined,
+        showIn: n.showIn ?? undefined,
+        suggestModelId: n.suggestModelId ?? undefined,
+      }))
     const existing = ctx.context?.globalState.get<string[]>(KEY, []) ?? []
     const active = new Set(notifications.map((n) => n.id))
     const dismissedIds = notifications.length > 0 ? existing.filter((id) => active.has(id)) : existing

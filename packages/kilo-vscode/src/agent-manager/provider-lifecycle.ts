@@ -70,16 +70,16 @@ export async function createLifecycleWorktree(
   }
 
   const state = ctx.peekState()!
-  state.addSession(session.id, created.worktree.id)
-  if (!opts.branchName && host.autoName().enabled) state.armAutoName(created.worktree.id, session.id)
-  host.register(session.id, created.result.path)
+  state.addSession(session.id as string, created.worktree.id)
+  if (!opts.branchName && host.autoName().enabled) state.armAutoName(created.worktree.id, session.id as string)
+  host.register(session.id as string, created.result.path)
   // Push state before registerSession so the webview's sessionCreated handler
   // sees the worktree mapping and routes the session to the worktree tab.
-  host.notifyReady(session.id, created.result, created.worktree.id)
+  host.notifyReady(session.id as string, created.result, created.worktree.id)
   host.sessions.register(session)
   host.capture("Agent Manager Session Started", {
     source: PLATFORM,
-    sessionId: session.id,
+    sessionId: session.id as string,
     worktreeId: created.worktree.id,
     branch: created.result.branch,
   })
@@ -242,7 +242,7 @@ export async function addSessionToLifecycleWorktree(
   try {
     const metadata = await host.metadata(client, worktree.path)
     const { data } = await client.session.create(
-      { directory: worktree.path, platform: PLATFORM, metadata },
+      { directory: worktree.path, body: { platform: PLATFORM, metadata } },
       { throwOnError: true },
     )
     session = data
@@ -258,15 +258,15 @@ export async function addSessionToLifecycleWorktree(
     return null
   }
 
-  state.addSession(session.id, worktreeId)
-  host.register(session.id, worktree.path)
+  state.addSession(session.id as string, worktreeId)
+  host.register(session.id as string, worktree.path)
   host.push()
-  host.post({ type: "agentManager.sessionAdded", sessionId: session.id, worktreeId })
+  host.post({ type: "agentManager.sessionAdded", sessionId: session.id as string, worktreeId })
   host.sessions.register(session)
 
   host.capture("Agent Manager Session Started", {
     source: PLATFORM,
-    sessionId: session.id,
+    sessionId: session.id as string,
     worktreeId,
   })
   host.log(`Added session ${session.id} to worktree ${worktreeId}`)

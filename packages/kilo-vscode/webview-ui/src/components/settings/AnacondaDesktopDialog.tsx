@@ -194,15 +194,15 @@ function AnacondaDesktopDialog(props: AnacondaDesktopDialogProps) {
           {(current) => (
             <>
               <Card>
-                <CardTitle icon="server">{current().serverName ?? language.t("provider.anaconda.server")}</CardTitle>
+                <CardTitle icon="server">{(current().serverName ?? language.t("provider.anaconda.server")) as string}</CardTitle>
                 <CardDescription>
                   <div style={{ display: "flex", "flex-direction": "column", gap: "10px" }}>
                     <div style={{ display: "flex", "flex-wrap": "wrap", gap: "6px" }}>
-                      <For each={current().models}>{(model) => <Tag size="large">{model.name}</Tag>}</For>
+                      <For each={current().models as any[]}>{(model) => <Tag size="large">{model.name}</Tag>}</For>
                     </div>
                     <div style={{ display: "flex", "justify-content": "space-between", gap: "12px" }}>
                       <span>{language.t("provider.anaconda.context")}</span>
-                      <strong>{language.t("provider.anaconda.contextValue", { count: current().context })}</strong>
+                      <strong>{language.t("provider.anaconda.contextValue", { count: current().context as number })}</strong>
                     </div>
                     <div style={{ display: "flex", "justify-content": "space-between", gap: "12px" }}>
                       <span>{language.t("provider.anaconda.tools")}</span>

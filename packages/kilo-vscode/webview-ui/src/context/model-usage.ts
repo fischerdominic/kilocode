@@ -2,6 +2,8 @@ import type { Provider, SessionModelUsage } from "../types/messages"
 
 const DATE_SUFFIX = /(?:-(?:20\d{6}|20\d{2}-\d{2}-\d{2}))(?:-v\d+(?::\d+)?)?$/i
 
+const num = (v: unknown): number => (typeof v === "number" ? v : 0)
+
 export type TokenSummary = { input: number; output: number; cached: number }
 
 export function isSameSessionTree(
@@ -28,28 +30,28 @@ export function hasModelUsage(usage: SessionModelUsage | undefined): usage is Se
   const tokens = usage.totals.tokens
   return (
     usage.models.length > 0 ||
-    usage.totals.steps > 0 ||
-    usage.totals.cost > 0 ||
-    tokens.input > 0 ||
-    tokens.output > 0 ||
-    tokens.reasoning > 0 ||
-    tokens.cache.read > 0 ||
-    tokens.cache.write > 0
+    num(usage.totals.steps) > 0 ||
+    num(usage.totals.cost) > 0 ||
+    num(tokens.input) > 0 ||
+    num(tokens.output) > 0 ||
+    num(tokens.reasoning) > 0 ||
+    num(tokens.cache.read) > 0 ||
+    num(tokens.cache.write) > 0
   )
 }
 
 export function tokenSummary(usage: SessionModelUsage): TokenSummary {
   return {
-    input: usage.totals.tokens.input,
-    output: usage.totals.tokens.output,
-    cached: usage.totals.tokens.cache.read,
+    input: num(usage.totals.tokens.input),
+    output: num(usage.totals.tokens.output),
+    cached: num(usage.totals.tokens.cache.read),
   }
 }
 
 export function cacheRate(model: SessionModelUsage["models"][number]) {
-  const total = model.tokens.input + model.tokens.cache.read + model.tokens.cache.write
+  const total = num(model.tokens.input) + num(model.tokens.cache.read) + num(model.tokens.cache.write)
   if (total === 0) return "-"
-  return `${((model.tokens.cache.read / total) * 100).toFixed(1)}%`
+  return `${((num(model.tokens.cache.read) / total) * 100).toFixed(1)}%`
 }
 
 export function groupModelUsage(models: SessionModelUsage["models"], providers: Record<string, Provider>) {
