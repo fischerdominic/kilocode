@@ -18,6 +18,7 @@
  *   --clean           Wipe isolated VS Code dirs and Kilo storage before launching
  *   --preserve-settings  Merge defaults into existing VS Code user settings
  *   --accessible      Enable VS Code accessibility support for assistive-technology testing
+ *   --cdp-port PORT   Enable the Chromium DevTools Protocol on PORT (e.g. 9222) for external automation
  *
  * Environment:
  *   VSCODE_EXEC_PATH  Path to VS Code executable (same as --app-path)
@@ -43,7 +44,7 @@ const temp = tmpdir().trimEnd()
 // Argument parsing
 // ---------------------------------------------------------------------------
 
-const valued = new Set(["workspace", "mode", "app-path", "state-dir", "kilo-storage-dir"])
+const valued = new Set(["workspace", "mode", "app-path", "state-dir", "kilo-storage-dir", "cdp-port"])
 
 function parse(argv: string[]) {
   const result: Record<string, string | boolean> = {}
@@ -118,6 +119,7 @@ const blocking = opts["wait"] === true
 const clean = opts["clean"] === true
 const preserve = opts["preserve-settings"] === true
 const accessible = opts["accessible"] === true
+const cdpPort = typeof opts["cdp-port"] === "string" ? opts["cdp-port"] : undefined
 
 // ---------------------------------------------------------------------------
 // VS Code executable detection
@@ -382,6 +384,10 @@ async function launch() {
     console.log(`[launch] Installed VSIX: ${vsix}`)
   }
 
+  if (cdpPort) {
+    args.push(`--remote-debugging-port=${cdpPort}`)
+  }
+
   if (blocking) {
     args.push("--wait")
   }
@@ -405,6 +411,7 @@ async function launch() {
   console.log(`[launch] State:      ${base}`)
   if (kilo) console.log(`[launch] Kilo state: ${kilo}`)
   console.log(`[launch] Accessibility support: ${accessible ? "on" : "off"}`)
+  if (cdpPort) console.log(`[launch] CDP port: ${cdpPort}`)
 
   if (blocking) {
     const result = Bun.spawnSync([app, ...args], {

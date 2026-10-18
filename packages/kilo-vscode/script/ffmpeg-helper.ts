@@ -36,7 +36,10 @@ export async function ensureFfmpegForTarget(target: string, bin: string): Promis
     const name = packed.text().trim().split(/\s+/).pop()
     if (!name) throw new Error(`npm pack did not return a tarball for ${spec}`)
 
-    await $`tar -xzf ${join(tmp, name)} -C ${tmp}`.quiet()
+    // On Windows, `tar` on PATH may resolve to Git Bash's GNU tar, which treats `D:\...`
+    // paths as remote host specs (host:file). Use the system bsdtar directly instead.
+    const tar = process.platform === "win32" ? `${process.env.SystemRoot ?? "C:\\Windows"}\\System32\\tar.exe` : "tar"
+    await $`${tar} -xzf ${join(tmp, name)} -C ${tmp}`.quiet()
     copyFileSync(join(tmp, "package", exe), dest)
     if (!target.startsWith("win32")) chmodSync(dest, 0o755)
     await Bun.write(marker, `${target}\n`)
