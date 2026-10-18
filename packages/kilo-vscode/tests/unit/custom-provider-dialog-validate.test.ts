@@ -5,6 +5,26 @@ import type { FormState } from "../../webview-ui/src/components/settings/CustomP
 // Simple translator that returns the key so tests can assert on key names
 const t = (key: string) => key
 
+function model(
+  extra: Partial<import("../../webview-ui/src/components/settings/CustomProviderModelCard").ModelEntry> = {},
+) {
+  return {
+    id: "model-1",
+    name: "Model One",
+    reasoning: false,
+    supportsImages: false,
+    modalities: {},
+    variants: [],
+    context: "",
+    outputLimit: "",
+    costInput: "",
+    costOutput: "",
+    costCacheRead: "",
+    costCacheWrite: "",
+    ...extra,
+  }
+}
+
 function base(): FormState {
   return {
     providerID: "my-provider",
@@ -12,9 +32,7 @@ function base(): FormState {
     npm: "@ai-sdk/openai-compatible",
     baseURL: "https://example.com/v1",
     apiKey: "",
-    models: [
-      { id: "model-1", name: "Model One", reasoning: false, supportsImages: false, modalities: {}, variants: [] },
-    ],
+    models: [model()],
     headers: [],
     saving: false,
   }
@@ -169,8 +187,8 @@ describe("validateCustomProvider – variant name validation", () => {
   it("treats model IDs differing only in case as duplicates", () => {
     const form = base()
     form.models = [
-      { id: "qwen2.5-coder:14b", name: "Qwen", reasoning: false, variants: [] },
-      { id: "QWEN2.5-CODER:14B", name: "Qwen Upper", reasoning: false, variants: [] },
+      model({ id: "qwen2.5-coder:14b", name: "Qwen" }),
+      model({ id: "QWEN2.5-CODER:14B", name: "Qwen Upper" }),
     ]
     const out = validateCustomProvider(args(form))
     expect(out.result).toBeUndefined()
@@ -296,8 +314,8 @@ describe("validateCustomProvider – variant name validation", () => {
   it("handles multiple models with reasoning and images toggled", () => {
     const form = base()
     form.models = [
-      { id: "m1", name: "Model 1", reasoning: true, supportsImages: true, modalities: {}, variants: [] },
-      { id: "m2", name: "Model 2", reasoning: true, supportsImages: false, modalities: {}, variants: [] },
+      model({ id: "m1", name: "Model 1", reasoning: true, supportsImages: true }),
+      model({ id: "m2", name: "Model 2", reasoning: true, supportsImages: false }),
     ]
     const out = validateCustomProvider(args(form))
     expect(out.result).toBeDefined()
@@ -307,5 +325,119 @@ describe("validateCustomProvider – variant name validation", () => {
     expect(m1.modalities).toEqual({ input: ["text", "image"] })
     expect(m2.reasoning).toBe(true)
     expect(m2.modalities).toBeUndefined()
+  })
+})
+
+describe("validateCustomProvider – limits and costs", () => {
+  it("serializes limit and cost when all fields are set", () => {
+    const form = base()
+    form.models[0] = model({
+      context: "262144",
+      outputLimit: "8192",
+      costInput: "2.0",
+      costOutput: "10.0",
+      costCacheRead: "0.1",
+      costCacheWrite: "2.5",
+    })
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeDefined()
+    const saved = out.result!.config.models["model-1"] as Record<string, unknown>
+    expect(saved.limit).toEqual({ context: 262144, output: 8192 })
+    expect(saved.cost).toEqual({ input: 2, output: 10, cache_read: 0.1, cache_write: 2.5 })
+  })
+
+  it("omits limit and cost when no fields are set", () => {
+    const form = base()
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeDefined()
+    const saved = out.result!.config.models["model-1"] as Record<string, unknown>
+    expect(saved.limit).toBeUndefined()
+    expect(saved.cost).toBeUndefined()
+  })
+
+  it("serializes cost without cache fields when cache is not set", () => {
+    const form = base()
+    form.models[0] = model({ costInput: "1.5", costOutput: "7.5" })
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeDefined()
+    const saved = out.result!.config.models["model-1"] as Record<string, unknown>
+    expect(saved.cost).toEqual({ input: 1.5, output: 7.5 })
+    expect(saved.limit).toBeUndefined()
+  })
+
+  it("serializes limit without cost when only limits are set", () => {
+    const form = base()
+    form.models[0] = model({ context: "131072", outputLimit: "4096" })
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeDefined()
+    const saved = out.result!.config.models["model-1"] as Record<string, unknown>
+    expect(saved.limit).toEqual({ context: 131072, output: 4096 })
+    expect(saved.cost).toBeUndefined()
+  })
+
+  it("blocks submit when cost input is set but output cost is missing", () => {
+    const form = base()
+    form.models[0] = model({ costInput: "2.0" })
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeUndefined()
+    expect(out.errors.models[0].costOutput).toBe("provider.custom.models.cost.required")
+  })
+
+  it("blocks submit when cache cost is set but input and output costs are missing", () => {
+    const form = base()
+    form.models[0] = model({ costCacheRead: "0.1" })
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeUndefined()
+    expect(out.errors.models[0].costInput).toBe("provider.custom.models.cost.required")
+    expect(out.errors.models[0].costOutput).toBe("provider.custom.models.cost.required")
+  })
+
+  it("blocks submit when context is set but output limit is missing", () => {
+    const form = base()
+    form.models[0] = model({ context: "262144" })
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeUndefined()
+    expect(out.errors.models[0].outputLimit).toBe("provider.custom.models.limit.outputRequired")
+  })
+
+  it("blocks submit when output limit is set but context is missing", () => {
+    const form = base()
+    form.models[0] = model({ outputLimit: "8192" })
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeUndefined()
+    expect(out.errors.models[0].context).toBe("provider.custom.models.limit.outputRequired")
+  })
+
+  it("blocks submit when a limit value is not a number", () => {
+    const form = base()
+    form.models[0] = model({ context: "abc", outputLimit: "8192" })
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeUndefined()
+    expect(out.errors.models[0].context).toBe("provider.custom.models.number.invalid")
+  })
+
+  it("blocks submit when a cost value is negative", () => {
+    const form = base()
+    form.models[0] = model({ costInput: "-1", costOutput: "10" })
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeUndefined()
+    expect(out.errors.models[0].costInput).toBe("provider.custom.models.number.invalid")
+  })
+
+  it("blocks submit when a limit value is zero", () => {
+    const form = base()
+    form.models[0] = model({ context: "0", outputLimit: "8192" })
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeUndefined()
+    expect(out.errors.models[0].context).toBe("provider.custom.models.number.invalid")
+  })
+
+  it("allows a zero cost", () => {
+    const form = base()
+    form.models[0] = model({ costInput: "0", costOutput: "0" })
+    const out = validateCustomProvider(args(form))
+    expect(out.result).toBeDefined()
+    const saved = out.result!.config.models["model-1"] as Record<string, unknown>
+    expect(saved.cost).toEqual({ input: 0, output: 0 })
   })
 })

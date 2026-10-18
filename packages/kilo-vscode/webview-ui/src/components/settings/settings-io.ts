@@ -46,6 +46,7 @@ export const KNOWN_KEYS: ReadonlyArray<string> = [
   "sandbox",
   "indexing",
   "experimental",
+  "shell",
 ]
 
 export type ImportError = "invalidJson" | "invalidConfig" | "tooLarge"

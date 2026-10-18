@@ -36,13 +36,14 @@ Add custom models under the `provider.<provider_id>.models` key in your config f
 - **Base URL** — The provider's API endpoint (e.g., `https://api.myprovider.com/v1`). When a valid URL is entered, Kilo automatically fetches available models from the endpoint if it exposes an OpenAI-compatible models endpoint.
 - **API key** — Your provider's API key. Optional — leave empty if you manage authentication via headers.
 - **Models** — Add models manually by ID and display name, or select from the auto-fetched list that appears after entering a valid base URL. Click **Fetch models** to trigger the fetch on demand, for example after the automatic fetch failed or the endpoint requires extra setup.
+- **Limits & costs** (optional, per model) — Set the model's token limits (**Context** and **Output**, in tokens) and its pricing per million tokens (**Input cost**, **Output cost**, **Cache read**, **Cache write**, in USD). Setting a context value requires an output limit, and entering any cost requires input and output costs. Leave empty to use catalog defaults.
 - **Headers** (optional) — Add custom HTTP headers as key-value pairs if your provider requires them.
 
 4. Click **Submit** to save. Your custom provider appears in the provider list and its models become available in the model picker.
 
 To edit an existing custom provider, click the **Edit provider** button next to it in the connected providers section.
 
-For additional model configuration (token limits, tool calling, reasoning, variants), edit the `kilo.jsonc` config file directly — see the **CLI** tab for the format.
+For additional model configuration (tool calling, reasoning, variants), edit the `kilo.jsonc` config file directly — see the **CLI** tab for the format.
 
 {% /tab %}
 {% tab label="CLI" %}

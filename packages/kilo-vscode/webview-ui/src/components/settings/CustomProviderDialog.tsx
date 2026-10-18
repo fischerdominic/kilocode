@@ -62,6 +62,8 @@ type RawModel = {
   reasoning?: boolean
   modalities?: { input?: unknown; output?: unknown }
   variants?: Record<string, Record<string, unknown>>
+  limit?: { context?: unknown; output?: unknown }
+  cost?: { input?: unknown; output?: unknown; cache_read?: unknown; cache_write?: unknown }
 }
 
 // Keep this aligned with the CLI provider schema; the UI only exposes image.
@@ -107,8 +109,25 @@ function parseVariant([name, cfg]: [string, Record<string, unknown>]): VariantEn
   }
 }
 
+function numToString(raw: unknown): string {
+  return typeof raw === "number" && Number.isFinite(raw) ? String(raw) : ""
+}
+
 function initModels(cfg: ProviderConfig | undefined): ModelEntry[] {
-  const empty = { id: "", name: "", reasoning: false, supportsImages: false, modalities: {}, variants: [] }
+  const empty = {
+    id: "",
+    name: "",
+    reasoning: false,
+    supportsImages: false,
+    modalities: {},
+    variants: [],
+    context: "",
+    outputLimit: "",
+    costInput: "",
+    costOutput: "",
+    costCacheRead: "",
+    costCacheWrite: "",
+  }
   if (!cfg?.models || typeof cfg.models !== "object") return [{ ...empty }]
   const entries = Object.entries(cfg.models)
   if (entries.length === 0) return [{ ...empty }]
@@ -123,6 +142,12 @@ function initModels(cfg: ProviderConfig | undefined): ModelEntry[] {
       supportsImages: input.includes("image"),
       modalities,
       variants: Object.entries(raw.variants ?? {}).map(parseVariant),
+      context: numToString(raw.limit?.context),
+      outputLimit: numToString(raw.limit?.output),
+      costInput: numToString(raw.cost?.input),
+      costOutput: numToString(raw.cost?.output),
+      costCacheRead: numToString(raw.cost?.cache_read),
+      costCacheWrite: numToString(raw.cost?.cache_write),
     }
   })
 }
@@ -392,6 +417,12 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
       supportsImages: false,
       modalities: {},
       variants: [],
+      context: "",
+      outputLimit: "",
+      costInput: "",
+      costOutput: "",
+      costCacheRead: "",
+      costCacheWrite: "",
     })
     const merged = empty ? toAdd.map(defaults) : [...form.models, ...toAdd.map(defaults)]
 
@@ -449,7 +480,20 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
   function addModel() {
     setForm("models", (v) => [
       ...v,
-      { id: "", name: "", reasoning: false, supportsImages: false, modalities: {}, variants: [] },
+      {
+        id: "",
+        name: "",
+        reasoning: false,
+        supportsImages: false,
+        modalities: {},
+        variants: [],
+        context: "",
+        outputLimit: "",
+        costInput: "",
+        costOutput: "",
+        costCacheRead: "",
+        costCacheWrite: "",
+      },
     ])
     setErrors("models", (v) => [...v, { variants: [] }])
   }
@@ -740,6 +784,12 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
                   onChangeName={(v) => setForm("models", i(), "name", v)}
                   onChangeReasoning={(v) => setForm("models", i(), "reasoning", v)}
                   onChangeSupportsImages={(v) => setForm("models", i(), "supportsImages", v)}
+                  onChangeContext={(v) => setForm("models", i(), "context", v)}
+                  onChangeOutputLimit={(v) => setForm("models", i(), "outputLimit", v)}
+                  onChangeCostInput={(v) => setForm("models", i(), "costInput", v)}
+                  onChangeCostOutput={(v) => setForm("models", i(), "costOutput", v)}
+                  onChangeCostCacheRead={(v) => setForm("models", i(), "costCacheRead", v)}
+                  onChangeCostCacheWrite={(v) => setForm("models", i(), "costCacheWrite", v)}
                   onRemove={() => removeModel(i())}
                 />
               )}

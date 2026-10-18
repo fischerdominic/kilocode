@@ -19,11 +19,23 @@ export type FormState = {
   saving: boolean
 }
 
+export type ModelFieldErrors = {
+  id?: string
+  name?: string
+  context?: string
+  outputLimit?: string
+  costInput?: string
+  costOutput?: string
+  costCacheRead?: string
+  costCacheWrite?: string
+  variants?: Array<{ name?: string }>
+}
+
 export type FormErrors = {
   providerID: string | undefined
   name: string | undefined
   baseURL: string | undefined
-  models: Array<{ id?: string; name?: string; variants?: Array<{ name?: string }> }>
+  models: ModelFieldErrors[]
   headers: Array<{ key?: string; value?: string }>
 }
 
@@ -64,7 +76,89 @@ function checkVariant(v: VariantEntry, seen: Set<string>, t: Translator) {
   return { name: undefined }
 }
 
-function checkModel(m: ModelEntry, seenModels: Set<string>, t: Translator) {
+function parseAmount(raw: string): number | undefined {
+  const trimmed = raw.trim()
+  if (!trimmed) return undefined
+  const num = Number(trimmed)
+  return Number.isFinite(num) ? num : undefined
+}
+
+function validPositive(raw: string, num: number | undefined): boolean {
+  return raw !== "" && num !== undefined && num > 0
+}
+
+function validNonNegative(raw: string, num: number | undefined): boolean {
+  return raw !== "" && num !== undefined && num >= 0
+}
+
+function checkLimit(m: ModelEntry, t: Translator) {
+  const contextRaw = m.context.trim()
+  const outputRaw = m.outputLimit.trim()
+  const context = parseAmount(contextRaw)
+  const output = parseAmount(outputRaw)
+  const okContext = validPositive(contextRaw, context)
+  const okOutput = validPositive(outputRaw, output)
+  const invalid = t("provider.custom.models.number.invalid")
+  const required = t("provider.custom.models.limit.outputRequired")
+
+  const contextErr = contextRaw !== "" ? (okContext ? undefined : invalid) : outputRaw !== "" ? required : undefined
+  const outputErr = outputRaw !== "" ? (okOutput ? undefined : invalid) : contextRaw !== "" ? required : undefined
+
+  return {
+    context: contextErr,
+    outputLimit: outputErr,
+    limit: okContext && okOutput ? { context: context as number, output: output as number } : undefined,
+  }
+}
+
+function checkCost(m: ModelEntry, t: Translator) {
+  const inputRaw = m.costInput.trim()
+  const outputRaw = m.costOutput.trim()
+  const cacheReadRaw = m.costCacheRead.trim()
+  const cacheWriteRaw = m.costCacheWrite.trim()
+  const input = parseAmount(inputRaw)
+  const output = parseAmount(outputRaw)
+  const cacheRead = parseAmount(cacheReadRaw)
+  const cacheWrite = parseAmount(cacheWriteRaw)
+  const okInput = validNonNegative(inputRaw, input)
+  const okOutput = validNonNegative(outputRaw, output)
+  const okCacheRead = validNonNegative(cacheReadRaw, cacheRead)
+  const okCacheWrite = validNonNegative(cacheWriteRaw, cacheWrite)
+  const set = inputRaw !== "" || outputRaw !== "" || cacheReadRaw !== "" || cacheWriteRaw !== ""
+  const invalid = t("provider.custom.models.number.invalid")
+  const required = t("provider.custom.models.cost.required")
+
+  const inputErr = inputRaw !== "" ? (okInput ? undefined : invalid) : set ? required : undefined
+  const outputErr = outputRaw !== "" ? (okOutput ? undefined : invalid) : set ? required : undefined
+  const cacheReadErr = cacheReadRaw !== "" && !okCacheRead ? invalid : undefined
+  const cacheWriteErr = cacheWriteRaw !== "" && !okCacheWrite ? invalid : undefined
+
+  return {
+    costInput: inputErr,
+    costOutput: outputErr,
+    costCacheRead: cacheReadErr,
+    costCacheWrite: cacheWriteErr,
+    cost:
+      set && okInput && okOutput
+        ? {
+            input: input as number,
+            output: output as number,
+            ...(okCacheRead ? { cache_read: cacheRead as number } : {}),
+            ...(okCacheWrite ? { cache_write: cacheWrite as number } : {}),
+          }
+        : undefined,
+  }
+}
+
+export type ModelLimit = { context: number; output: number }
+export type ModelCost = { input: number; output: number; cache_read?: number; cache_write?: number }
+
+export type CheckedModel = ModelFieldErrors & {
+  limit?: ModelLimit
+  cost?: ModelCost
+}
+
+function checkModel(m: ModelEntry, seenModels: Set<string>, t: Translator): CheckedModel {
   const id = m.id.trim()
   const key = id.toLowerCase()
   let idErr: string | undefined
@@ -75,7 +169,21 @@ function checkModel(m: ModelEntry, seenModels: Set<string>, t: Translator) {
   const nameErr = !m.name.trim() ? t("provider.custom.error.required") : undefined
   const seen = new Set<string>()
   const variants = m.reasoning ? m.variants.map((v) => checkVariant(v, seen, t)) : []
-  return { id: idErr, name: nameErr, variants }
+  const limit = checkLimit(m, t)
+  const cost = checkCost(m, t)
+  return {
+    id: idErr,
+    name: nameErr,
+    context: limit.context,
+    outputLimit: limit.outputLimit,
+    costInput: cost.costInput,
+    costOutput: cost.costOutput,
+    costCacheRead: cost.costCacheRead,
+    costCacheWrite: cost.costCacheWrite,
+    variants,
+    limit: limit.limit,
+    cost: cost.cost,
+  }
 }
 
 function checkHeader(h: HeaderRow, seenKeys: Set<string>, t: Translator) {
@@ -139,12 +247,14 @@ function modalities(m: ModelEntry): Modalities | undefined {
   }
 }
 
-function serializeModel(m: ModelEntry): [string, Record<string, unknown>] {
+function serializeModel(m: ModelEntry, checked: CheckedModel): [string, Record<string, unknown>] {
   const ventries = m.reasoning ? m.variants.filter((v) => v.name.trim()).map(serializeVariant) : []
   const entry: Record<string, unknown> = { name: m.name.trim() }
   const modes = modalities(m)
   if (m.reasoning) entry.reasoning = true
   if (modes) entry.modalities = modes
+  if (checked.limit) entry.limit = checked.limit
+  if (checked.cost) entry.cost = checked.cost
   if (ventries.length > 0) entry.variants = Object.fromEntries(ventries)
   return [m.id.trim(), entry]
 }
@@ -183,7 +293,18 @@ export function validateCustomProvider(input: ValidateArgs): ValidateResult {
 
   const seenModels = new Set<string>()
   const modelErrors = input.form.models.map((m) => checkModel(m, seenModels, input.t))
-  const modelsValid = modelErrors.every((m) => !m.id && !m.name && m.variants.every((v) => !v.name))
+  const modelsValid = modelErrors.every(
+    (m) =>
+      !m.id &&
+      !m.name &&
+      !m.context &&
+      !m.outputLimit &&
+      !m.costInput &&
+      !m.costOutput &&
+      !m.costCacheRead &&
+      !m.costCacheWrite &&
+      (m.variants ?? []).every((v) => !v.name),
+  )
 
   const seenHeaders = new Set<string>()
   const headerErrors = input.form.headers.map((h) => checkHeader(h, seenHeaders, input.t))
@@ -223,7 +344,7 @@ export function validateCustomProvider(input: ValidateArgs): ValidateResult {
         name,
         ...resolveEnv(rawEnv, savedEnv),
         options,
-        models: Object.fromEntries(input.form.models.map(serializeModel)),
+        models: Object.fromEntries(input.form.models.map((m, i) => serializeModel(m, modelErrors[i] ?? {}))),
       },
     },
   }
