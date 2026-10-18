@@ -45,6 +45,16 @@ const PACKAGE_OPTIONS: Array<{ value: CustomProviderPackage; label: string }> = 
   { value: "@ai-sdk/anthropic", label: "Anthropic Messages" },
 ]
 
+/** Default limit/cost field values for newly added models (costs accept floats). */
+const DEFAULT_LIMIT_COST = {
+  context: "262144",
+  outputLimit: "8192",
+  costInput: "0.0",
+  costOutput: "0.0",
+  costCacheRead: "0.0",
+  costCacheWrite: "0.0",
+}
+
 /** Subsequence fuzzy match — "gpt4o" matches "gpt-4o-mini". */
 function fuzzy(query: string, target: string) {
   const q = query.toLowerCase()
@@ -121,12 +131,7 @@ function initModels(cfg: ProviderConfig | undefined): ModelEntry[] {
     supportsImages: false,
     modalities: {},
     variants: [],
-    context: "",
-    outputLimit: "",
-    costInput: "",
-    costOutput: "",
-    costCacheRead: "",
-    costCacheWrite: "",
+    ...DEFAULT_LIMIT_COST,
   }
   if (!cfg?.models || typeof cfg.models !== "object") return [{ ...empty }]
   const entries = Object.entries(cfg.models)
@@ -417,12 +422,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
       supportsImages: false,
       modalities: {},
       variants: [],
-      context: "",
-      outputLimit: "",
-      costInput: "",
-      costOutput: "",
-      costCacheRead: "",
-      costCacheWrite: "",
+      ...DEFAULT_LIMIT_COST,
     })
     const merged = empty ? toAdd.map(defaults) : [...form.models, ...toAdd.map(defaults)]
 
@@ -487,12 +487,7 @@ const CustomProviderDialog = (props: CustomProviderDialogProps) => {
         supportsImages: false,
         modalities: {},
         variants: [],
-        context: "",
-        outputLimit: "",
-        costInput: "",
-        costOutput: "",
-        costCacheRead: "",
-        costCacheWrite: "",
+        ...DEFAULT_LIMIT_COST,
       },
     ])
     setErrors("models", (v) => [...v, { variants: [] }])

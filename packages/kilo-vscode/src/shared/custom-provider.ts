@@ -26,6 +26,23 @@ const ModelModalitiesSchema = z.object({
 
 export type ModelModalities = z.infer<typeof ModelModalitiesSchema>
 
+// Mirror the CLI provider model schema (packages/core/src/v1/config/provider.ts).
+export const ModelCostSchema = z.object({
+  input: z.number(),
+  output: z.number(),
+  cache_read: z.number().optional(),
+  cache_write: z.number().optional(),
+})
+
+export type ModelCost = z.infer<typeof ModelCostSchema>
+
+export const ModelLimitSchema = z.object({
+  context: z.number(),
+  output: z.number(),
+})
+
+export type ModelLimit = z.infer<typeof ModelLimitSchema>
+
 export const CustomProviderConfigSchema = z
   .object({
     npm: z.enum(CUSTOM_PROVIDER_PACKAGES).default(CUSTOM_PROVIDER_PACKAGE),
@@ -52,6 +69,8 @@ export const CustomProviderConfigSchema = z
             reasoning: z.boolean().optional(),
             modalities: ModelModalitiesSchema.optional(),
             variants: z.record(z.string().trim().min(1), VariantConfigSchema).optional(),
+            cost: ModelCostSchema.optional(),
+            limit: ModelLimitSchema.optional(),
           })
           .strict(),
       )
@@ -69,7 +88,14 @@ export type SanitizedProviderConfig = {
   }
   models: Record<
     string,
-    { name: string; reasoning?: true; modalities?: ModelModalities; variants?: Record<string, VariantConfig> }
+    {
+      name: string
+      reasoning?: true
+      modalities?: ModelModalities
+      variants?: Record<string, VariantConfig>
+      cost?: ModelCost
+      limit?: ModelLimit
+    }
   >
 }
 
@@ -143,6 +169,8 @@ export function normalizeCustomProviderConfig(
           ...(model.reasoning ? { reasoning: true as const } : {}),
           ...(model.modalities ? { modalities: model.modalities } : {}),
           ...(model.variants && Object.keys(model.variants).length > 0 ? { variants: model.variants } : {}),
+          ...(model.cost ? { cost: model.cost } : {}),
+          ...(model.limit ? { limit: model.limit } : {}),
         },
       ]),
     ),
@@ -169,12 +197,20 @@ type ProviderPatch = Omit<SanitizedProviderConfig, "models"> & {
       reasoning?: true | null
       modalities?: ModelModalities | null
       variants?: Record<string, VariantConfig | VariantPatch | null>
+      cost?: ModelCost | null
+      limit?: ModelLimit | null
     }
   >
 }
 
 function isRecord(v: unknown): v is AnyRecord {
   return !!v && typeof v === "object" && !Array.isArray(v)
+}
+
+/** Null delete-sentinel for an optional field that existed before but is now absent. */
+function removedSentinel<K extends string>(oldValue: unknown, newValue: unknown, key: K): Partial<Record<K, null>> {
+  if (oldValue === undefined || newValue !== undefined) return {}
+  return { [key]: null } as Partial<Record<K, null>>
 }
 
 /**
@@ -216,8 +252,10 @@ export function withCustomProviderDeletions(existing: unknown, next: SanitizedPr
     patched[id] = {
       ...newModel,
       ...(variants ? { variants } : {}),
-      ...(oldModel.reasoning !== undefined && newModel.reasoning === undefined ? { reasoning: null } : {}),
-      ...(oldModel.modalities !== undefined && newModel.modalities === undefined ? { modalities: null } : {}),
+      ...removedSentinel(oldModel.reasoning, newModel.reasoning, "reasoning"),
+      ...removedSentinel(oldModel.modalities, newModel.modalities, "modalities"),
+      ...removedSentinel(oldModel.cost, newModel.cost, "cost"),
+      ...removedSentinel(oldModel.limit, newModel.limit, "limit"),
     }
   }
 

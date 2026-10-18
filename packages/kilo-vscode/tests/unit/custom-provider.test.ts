@@ -224,6 +224,35 @@ describe("sanitizeCustomProviderConfig", () => {
     })
   })
 
+  it("preserves model limit and cost (float costs supported)", () => {
+    const result = sanitizeCustomProviderConfig({
+      name: "Priced Provider",
+      options: { baseURL: "https://example.com/v1" },
+      models: {
+        "model-1": {
+          name: "Model One",
+          limit: { context: 262144, output: 8192 },
+          cost: { input: 2.5, output: 10, cache_read: 0.1, cache_write: 2.5 },
+        },
+      },
+    })
+
+    expect(result).toEqual({
+      value: {
+        npm: "@ai-sdk/openai-compatible",
+        name: "Priced Provider",
+        options: { baseURL: "https://example.com/v1" },
+        models: {
+          "model-1": {
+            name: "Model One",
+            limit: { context: 262144, output: 8192 },
+            cost: { input: 2.5, output: 10, cache_read: 0.1, cache_write: 2.5 },
+          },
+        },
+      },
+    })
+  })
+
   it("rejects unknown fields", () => {
     const result = sanitizeCustomProviderConfig({
       name: "Bad Provider",
@@ -287,6 +316,20 @@ describe("withCustomProviderDeletions", () => {
     const existing = { models: { keep: { name: "Keep", reasoning: true } } }
     const result = withCustomProviderDeletions(existing, baseNext)
     expect(result.models.keep).toEqual({ name: "Keep", reasoning: null })
+  })
+
+  it("emits null for cost and limit removed from a surviving model", () => {
+    const existing = {
+      models: {
+        keep: {
+          name: "Keep",
+          limit: { context: 262144, output: 8192 },
+          cost: { input: 1, output: 2 },
+        },
+      },
+    }
+    const result = withCustomProviderDeletions(existing, baseNext)
+    expect(result.models.keep).toEqual({ name: "Keep", limit: null, cost: null })
   })
 
   it("emits null for options removed from a surviving variant", () => {
