@@ -1191,6 +1191,12 @@ export const dict = {
   "settings.autoCleanup.stop": "정리 중지",
   "settings.autoCleanup.progress.cancelling": "세션 정리를 중지하는 중...",
   "settings.autoCleanup.lastRun.cancelled": "중단됨",
+  "settings.context.terminal.title": "터미널",
+  "settings.context.terminal.description":
+    "Kilo Code가 명령을 실행하는 데 사용할 셸을 선택합니다. 시스템 기본값은 운영 체제의 기본 셸을 사용합니다.",
+  "settings.context.terminal.systemDefault": "시스템 기본값",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "자동 압축",
   "settings.context.autoCompaction.description": "컨텍스트가 한도에 도달하기 전에 자동으로 압축",
   "settings.context.compaction.title": "압축",

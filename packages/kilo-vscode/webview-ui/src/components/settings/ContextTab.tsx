@@ -1,5 +1,6 @@
 import { Component, Show } from "solid-js"
 import { Switch } from "@kilocode/kilo-ui/switch"
+import { Select } from "@kilocode/kilo-ui/select"
 import { TextField } from "@kilocode/kilo-ui/text-field"
 import { Card } from "@kilocode/kilo-ui/card"
 import { Button } from "@kilocode/kilo-ui/button"
@@ -19,6 +20,17 @@ const ContextTab: Component<{ onNavigateToModels?: () => void }> = (props) => {
   const limit = () => {
     const value = config().compaction?.threshold_percent
     return value === null || value === undefined ? "" : String(value)
+  }
+
+  const shellValue = () => config().shell ?? ""
+  const terminalOptions = () => [
+    { value: "", label: language.t("settings.context.terminal.systemDefault") },
+    { value: "powershell", label: language.t("settings.context.terminal.powershell") },
+    { value: "bash", label: language.t("settings.context.terminal.bash") },
+  ]
+  const setShell = (value?: string) => {
+    if (value === undefined) return
+    updateConfig({ shell: value === "" ? null : value })
   }
 
   const saveLimit = (value: string) => {
@@ -45,7 +57,30 @@ const ContextTab: Component<{ onNavigateToModels?: () => void }> = (props) => {
 
   return (
     <div>
-      <h4 style={{ "margin-top": "0", "margin-bottom": "8px" }}>{language.t("settings.context.memory.title")}</h4>
+      {/* Terminal shell selection */}
+      <h4 style={{ "margin-top": "0", "margin-bottom": "8px" }}>{language.t("settings.context.terminal.title")}</h4>
+      <Card>
+        <SettingsRow
+          title={language.t("settings.context.terminal.title")}
+          description={language.t("settings.context.terminal.description")}
+          last
+        >
+          <Select
+            options={terminalOptions()}
+            current={terminalOptions().find((o) => o.value === shellValue())}
+            value={(o) => o.value}
+            label={(o) => o.label}
+            onSelect={(o) => {
+              if (o) setShell(o.value)
+            }}
+            variant="secondary"
+            size="small"
+            triggerVariant="settings"
+          />
+        </SettingsRow>
+      </Card>
+
+      <h4 style={{ "margin-top": "16px", "margin-bottom": "8px" }}>{language.t("settings.context.memory.title")}</h4>
       <Card>
         <SettingsRow title={language.t("settings.context.memory.project.title")} description={memoryStats()}>
           <Switch

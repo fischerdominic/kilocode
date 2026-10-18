@@ -1171,6 +1171,12 @@ export const dict = {
   "settings.autoCleanup.progress.cancelling": "Зупинка очищення сеансів...",
   "settings.autoCleanup.lastRun.cancelled": "перервано",
 
+  "settings.context.terminal.title": "Термінал",
+  "settings.context.terminal.description":
+    "Оберіть оболонку, яку Kilo Code використовує для виконання команд. Системний стандарт використовує оболонку за замовчуванням вашої операційної системи.",
+  "settings.context.terminal.systemDefault": "Системний стандарт",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "Автоматичне стиснення",
   "settings.context.autoCompaction.description": "Автоматично стискати контекст до досягнення ліміту",
   "settings.context.compaction.title": "Стискання",

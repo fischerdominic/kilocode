@@ -194,6 +194,7 @@ export interface Config {
   experimental?: ExperimentalConfig
   sandbox?: SandboxConfig
   indexing?: IndexingConfig
+  shell?: string | null
 }
 
 export interface FeatureFlags {

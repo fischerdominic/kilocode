@@ -1205,6 +1205,12 @@ export const dict = {
   "settings.autoCleanup.stop": "クリーンアップを停止",
   "settings.autoCleanup.progress.cancelling": "セッションのクリーンアップを停止しています...",
   "settings.autoCleanup.lastRun.cancelled": "中断されました",
+  "settings.context.terminal.title": "ターミナル",
+  "settings.context.terminal.description":
+    "Kilo Code がコマンドを実行するために使用するシェルを選択します。システムデフォルトは、オペレーティングシステムのデフォルトシェルを使用します。",
+  "settings.context.terminal.systemDefault": "システムデフォルト",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "自動圧縮",
   "settings.context.autoCompaction.description": "コンテキストが上限に達する前に自動的に圧縮",
   "settings.context.compaction.title": "圧縮",

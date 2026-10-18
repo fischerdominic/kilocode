@@ -1182,6 +1182,12 @@ export const dict = {
   "settings.autoCleanup.progress.cancelling": "Sessie-opschoning wordt gestopt...",
   "settings.autoCleanup.lastRun.cancelled": "afgebroken",
 
+  "settings.context.terminal.title": "Terminal",
+  "settings.context.terminal.description":
+    "Kies de shell die Kilo Code gebruikt om commando's uit te voeren. Systeemstandaard gebruikt de standaardshell van uw besturingssysteem.",
+  "settings.context.terminal.systemDefault": "Systeemstandaard",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "Automatische Compactie",
   "settings.context.autoCompaction.description": "Context automatisch compacteren voordat deze de limiet bereikt",
   "settings.context.compaction.title": "Compactie",

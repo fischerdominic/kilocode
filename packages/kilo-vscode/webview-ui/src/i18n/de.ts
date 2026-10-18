@@ -1237,6 +1237,12 @@ export const dict = {
   "settings.autoCleanup.stop": "Bereinigung stoppen",
   "settings.autoCleanup.progress.cancelling": "Sitzungsbereinigung wird gestoppt...",
   "settings.autoCleanup.lastRun.cancelled": "abgebrochen",
+  "settings.context.terminal.title": "Terminal",
+  "settings.context.terminal.description":
+    "Wählen Sie die Shell, die Kilo Code zum Ausführen von Befehlen verwendet. Systemstandard verwendet die Standard-Shell Ihres Betriebssystems.",
+  "settings.context.terminal.systemDefault": "Systemstandard",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "Automatische Komprimierung",
   "settings.context.autoCompaction.description": "Kontext automatisch komprimieren, bevor er das Limit erreicht",
   "settings.context.compaction.title": "Komprimierung",

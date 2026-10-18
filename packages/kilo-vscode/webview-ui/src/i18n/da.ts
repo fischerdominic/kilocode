@@ -1209,6 +1209,12 @@ export const dict = {
   "settings.autoCleanup.stop": "Stop oprydning",
   "settings.autoCleanup.progress.cancelling": "Stopper oprydning af sessioner...",
   "settings.autoCleanup.lastRun.cancelled": "afbrudt",
+  "settings.context.terminal.title": "Terminal",
+  "settings.context.terminal.description":
+    "Vælg skallen, Kilo Code bruger til at køre kommandoer. Systemstandard bruger operativsystemets standardskal.",
+  "settings.context.terminal.systemDefault": "Systemstandard",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "Automatisk komprimering",
   "settings.context.autoCompaction.description": "Komprimér automatisk kontekst, før den når grænsen",
   "settings.context.compaction.title": "Komprimering",

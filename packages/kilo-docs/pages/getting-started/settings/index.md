@@ -141,6 +141,24 @@ Terminal command blocks stay expanded by default in the VS Code chat UI. Choose 
 
 Valid values are `expanded` and `collapsed`.
 
+### Terminal Shell
+
+Choose the shell Kilo Code uses to run commands under **Settings → Context → Terminal**. The options are:
+
+- **System default** (default) — uses your operating system's default shell. On Windows this is PowerShell, which is why commands may run as PowerShell by default.
+- **PowerShell** — always use PowerShell.
+- **Bash** — always use Bash. On Windows this uses Git for Windows Bash when Git is installed.
+
+This is useful when a model is more comfortable with one shell syntax than another. The setting stores `shell` in `kilo.jsonc`:
+
+```json
+{
+  "shell": "bash"
+}
+```
+
+Valid values are `powershell` and `bash`. Leave the key out (or set it to an empty string) to use the system default. The setting applies to the `bash`/terminal tool the agent uses to run commands.
+
 ### Code Edit and Tool Blocks
 
 Code edit and diff blocks start collapsed. Choose **Expanded** for **Code Edit Blocks** in the Display tab, or set `code_edit_display` in `kilo.jsonc`. MCP and generic tool blocks also start collapsed, controlled by `mcp_tool_display`:

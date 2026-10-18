@@ -1171,6 +1171,12 @@ export const dict = {
   "settings.autoCleanup.progress.cancelling": "Oturum temizliği durduruluyor...",
   "settings.autoCleanup.lastRun.cancelled": "kesintiye uğradı",
 
+  "settings.context.terminal.title": "Terminal",
+  "settings.context.terminal.description":
+    "Kilo Code'un komutları çalıştırmak için kullandığı kabuğu seçin. Sistem varsayılanı, işletim sisteminizin varsayılan kabuğunu kullanır.",
+  "settings.context.terminal.systemDefault": "Sistem varsayılanı",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "Otomatik Sıkıştırma",
   "settings.context.autoCompaction.description": "Bağlam sınıra ulaşmadan önce otomatik olarak sıkıştır",
   "settings.context.compaction.title": "Sıkıştırma",

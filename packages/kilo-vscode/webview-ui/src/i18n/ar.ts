@@ -1180,6 +1180,12 @@ export const dict = {
   "settings.autoCleanup.stop": "إيقاف التنظيف",
   "settings.autoCleanup.progress.cancelling": "جارٍ إيقاف تنظيف الجلسات...",
   "settings.autoCleanup.lastRun.cancelled": "تمت المقاطعة",
+  "settings.context.terminal.title": "الطرفية",
+  "settings.context.terminal.description":
+    "اختر shell الذي تستخدمه Kilo Code لتنفيذ الأوامر. الإعداد الافتراضي للنظام يستخدم shell الافتراضي لنظام التشغيل.",
+  "settings.context.terminal.systemDefault": "افتراضي النظام",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "ضغط تلقائي",
   "settings.context.autoCompaction.description": "ضغط السياق تلقائياً قبل أن يصل إلى الحد",
   "settings.context.compaction.title": "الضغط",

@@ -1196,6 +1196,12 @@ export const dict = {
   "settings.autoCleanup.progress.cancelling": "در حال توقف پاکسازی نشست‌ها...",
   "settings.autoCleanup.lastRun.cancelled": "قطع‌شده",
 
+  "settings.context.terminal.title": "ترمینال",
+  "settings.context.terminal.description":
+    "Shell را که Kilo Code برای اجرای دستورات استفاده می‌کند انتخاب کنید. پیش‌فرض سیستم از shell پیش‌فرض سیستم‌عامل شما استفاده می‌کند.",
+  "settings.context.terminal.systemDefault": "پیش‌فرض سیستم",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "فشرده‌سازی خودکار",
   "settings.context.autoCompaction.description": "قبل از رسیدن به محدودیت، زمینه را به‌طور خودکار فشرده کنید",
   "settings.context.compaction.title": "فشرده‌سازی",

@@ -1188,6 +1188,12 @@ export const dict = {
   "settings.autoCleanup.stop": "หยุดการล้างข้อมูล",
   "settings.autoCleanup.progress.cancelling": "กำลังหยุดการล้างเซสชัน...",
   "settings.autoCleanup.lastRun.cancelled": "ถูกยกเลิก",
+  "settings.context.terminal.title": "เทอร์มินัล",
+  "settings.context.terminal.description":
+    "เลือก shell ที่ Kilo Code ใช้ในการรันคำสั่ง ค่าเริ่มต้นของระบบจะใช้ shell เริ่มต้นของระบบปฏิบัติการ",
+  "settings.context.terminal.systemDefault": "ค่าเริ่มต้นของระบบ",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "การบีบอัดอัตโนมัติ",
   "settings.context.autoCompaction.description": "บีบอัดบริบทอัตโนมัติก่อนถึงขีดจำกัด",
   "settings.context.compaction.title": "การบีบอัด",

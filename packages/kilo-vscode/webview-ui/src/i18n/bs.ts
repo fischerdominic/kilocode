@@ -1215,6 +1215,12 @@ export const dict = {
   "settings.autoCleanup.stop": "Zaustavi čišćenje",
   "settings.autoCleanup.progress.cancelling": "Zaustavljanje čišćenja sesija...",
   "settings.autoCleanup.lastRun.cancelled": "prekinuto",
+  "settings.context.terminal.title": "Terminal",
+  "settings.context.terminal.description":
+    "Odaberite shell koji Kilo Code koristi za izvršavanje komandi. Sistemski zadani koristi zadani shell vašeg operativnog sistema.",
+  "settings.context.terminal.systemDefault": "Sistemski zadani",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "Automatska kompresija",
   "settings.context.autoCompaction.description": "Automatski komprimiraj kontekst prije nego dostigne limit",
   "settings.context.compaction.title": "Kompresija",

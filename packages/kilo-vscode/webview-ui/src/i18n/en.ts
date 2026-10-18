@@ -1200,6 +1200,12 @@ export const dict = {
   "settings.autoCleanup.progress.cancelling": "Stopping session cleanup...",
   "settings.autoCleanup.lastRun.cancelled": "interrupted",
 
+  "settings.context.terminal.title": "Terminal",
+  "settings.context.terminal.description":
+    "Choose the shell Kilo Code uses to run commands. System default uses your operating system's default shell.",
+  "settings.context.terminal.systemDefault": "System default",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "Auto Compaction",
   "settings.context.autoCompaction.description": "Automatically compact context before it reaches the limit",
   "settings.context.compaction.title": "Compaction",

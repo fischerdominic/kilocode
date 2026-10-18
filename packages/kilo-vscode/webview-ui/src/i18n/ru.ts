@@ -1210,6 +1210,12 @@ export const dict = {
   "settings.autoCleanup.stop": "Остановить очистку",
   "settings.autoCleanup.progress.cancelling": "Остановка очистки сессий...",
   "settings.autoCleanup.lastRun.cancelled": "прервана",
+  "settings.context.terminal.title": "Терминал",
+  "settings.context.terminal.description":
+    "Выберите оболочку, которую Kilo Code использует для выполнения команд. Системный стандарт использует оболочку по умолчанию вашей операционной системы.",
+  "settings.context.terminal.systemDefault": "Системный стандарт",
+  "settings.context.terminal.powershell": "PowerShell",
+  "settings.context.terminal.bash": "Bash",
   "settings.context.autoCompaction.title": "Автоматическое сжатие",
   "settings.context.autoCompaction.description": "Автоматически сжимать контекст до достижения лимита",
   "settings.context.compaction.title": "Сжатие",
